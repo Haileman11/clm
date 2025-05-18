@@ -26,23 +26,6 @@ export default function VendorCreate() {
           <Input />
         </Form.Item>
         <Form.Item
-          label="Email"
-          name="email"
-          rules={[
-            { required: true },
-            { type: "email" }
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Phone"
-          name="phone"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
           label="Number"
           name="number"
         >
@@ -106,9 +89,9 @@ export default function VendorCreate() {
         >
           <Select
             options={[
-              { label: "Active", value: "active" },
-              { label: "Inactive", value: "inactive" },
-              { label: "Pending", value: "pending" }
+              { label: "Active", value: "ACTIVE" },
+              { label: "Inactive", value: "INACTIVE" },
+              { label: "Pending", value: "PENDING" }
             ]}
           />
         </Form.Item>

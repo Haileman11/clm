@@ -36,6 +36,7 @@ type AppProps = {
 const App = (props: React.PropsWithChildren<AppProps>) => {
   const { data, status } = useSession();
   const to = usePathname();
+  const isContractManager = data?.user?.role === "CONTRACT_MANAGER";
 
   if (status === "loading") {
     return <LoadingScreen />;
@@ -103,6 +104,45 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
 
   const defaultMode = props?.defaultMode;
 
+  // Define resources based on user role
+  const resources = [
+    {
+      name: "contracts",
+      list: "/contracts",
+      create: isContractManager ? "/contracts/create" : undefined,
+      edit: isContractManager ? "/contracts/edit/:id" : undefined,
+      show: "/contracts/show/:id",
+      meta: {
+        canDelete: isContractManager,
+      },
+    },
+    // Only show these resources for CONTRACT_MANAGER
+    ...(isContractManager
+      ? [
+          {
+            name: "vendors",
+            list: "/vendors",
+            create: "/vendors/create",
+            edit: "/vendors/edit/:id",
+            show: "/vendors/show/:id",
+            meta: {
+              canDelete: true,
+            },
+          },
+          {
+            name: "users",
+            list: "/users",
+            create: "/users/create",
+            edit: "/users/edit/:id",
+            show: "/users/show/:id",
+            meta: {
+              canDelete: true,
+            },
+          },
+        ]
+      : []),
+  ];
+
   return (
     <>      
       <RefineKbarProvider>
@@ -119,38 +159,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
                 useNewQueryKeys: true,
                 projectId: "zcrf0C-hsa2nM-Q75LiF",
               }}
-              resources={[
-                {
-                  name: "vendors",
-                  list: "/vendors",
-                  create: "/vendors/create",
-                  edit: "/vendors/edit/:id",
-                  show: "/vendors/show/:id",
-                  meta: {
-                    canDelete: true,
-                  },
-                },
-                {
-                  name: "contracts",
-                  list: "/contracts",
-                  create: "/contracts/create",
-                  edit: "/contracts/edit/:id",
-                  show: "/contracts/show/:id",
-                  meta: {
-                    canDelete: true,
-                  },
-                },
-                {
-                  name: "users",
-                  list: "/users",
-                  create: "/users/create",
-                  edit: "/users/edit/:id",
-                  show: "/users/show/:id",
-                  meta: {
-                    canDelete: true,
-                  },
-                },
-              ]}
+              resources={resources}
             >
               {props.children}
               <RefineKbar />

@@ -9,10 +9,26 @@ import {
   CreateButton,
   DateField,
 } from "@refinedev/antd";
-import { Table, Space, Input, Select } from "antd";
+import { Table, Space, Input, Select, Button, Tag } from "antd";
 import { useState } from "react";
 import { CONTRACT_STATUS } from "@lib/types";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
+interface ExtendedSession {
+  user: {
+    role?: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+}
+
 export default function ContractList() {
+  const { data: session } = useSession() as { data: ExtendedSession | null };
+  const router = useRouter();
+  const isReadOnly = session?.user?.role !== "CONTRACT_MANAGER";
+
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState<typeof CONTRACT_STATUS[keyof typeof CONTRACT_STATUS] | "">("");
 
@@ -35,32 +51,32 @@ export default function ContractList() {
 
   return (
     <List
-      headerButtons={({ createButtonProps }) => (
-        <>
-          <Input.Search
-            placeholder="Search contracts..."
-            style={{ width: 300, marginRight: 16 }}
-            onSearch={(value) => setSearchText(value)}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <Select
-            style={{ width: 200, marginRight: 16 }}
-            placeholder="Filter by status"
-            allowClear
-            onChange={(value) => setStatusFilter(value)}
-          >
-            {Object.values(CONTRACT_STATUS).map((status) => (
-              <Select.Option key={status} value={status}>
-                {status.replace(/_/g, " ")}
-              </Select.Option>
-            ))}
-          </Select>
-          <CreateButton {...createButtonProps} />
-        </>
-      )}
+      headerButtons={
+        !isReadOnly
+          ? [
+              <Button
+                type="primary"
+                onClick={() => router.push("/contracts/create")}
+              >
+                Create Contract
+              </Button>,
+            ]
+          : undefined
+      }
     >
       <Table {...tableProps} rowKey="id">
-        <Table.Column dataIndex="name" title="Name" />
+        <Table.Column
+          dataIndex="name"
+          title="Name"
+          render={(value, record: any) => (
+            <Button
+              type="link"
+              onClick={() => router.push(`/contracts/show/${record.id}`)}
+            >
+              {value}
+            </Button>
+          )}
+        />
         <Table.Column
           dataIndex="effectiveDate"
           title="Effective Date"
@@ -82,18 +98,38 @@ export default function ContractList() {
           title="Total Value"
           render={(value) => value.toLocaleString()}
         />
-        <Table.Column dataIndex="status" title="Status" />
         <Table.Column
-          title="Actions"
-          dataIndex="actions"
-          render={(_, record) => (
-            <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
-              <ShowButton hideText size="small" recordItemId={record.id} />
-              <DeleteButton hideText size="small" recordItemId={record.id} />
-            </Space>
+          dataIndex="status"
+          title="Status"
+          render={(value) => (
+            <Tag
+              color={
+                value === "active"
+                  ? "success"
+                  : value === "expired"
+                  ? "error"
+                  : "warning"
+              }
+            >
+              {value.toUpperCase()}
+            </Tag>
           )}
         />
+        {!isReadOnly && (
+          <Table.Column
+            title="Actions"
+            render={(_, record: any) => (
+              <Space>
+                <Button
+                  type="link"
+                  onClick={() => router.push(`/contracts/edit/${record.id}`)}
+                >
+                  Edit
+                </Button>
+              </Space>
+            )}
+          />
+        )}
       </Table>
     </List>
   );

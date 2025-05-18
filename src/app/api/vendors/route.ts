@@ -37,8 +37,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const {
       name,
-      email,
-      phone,
       number,
       supplierService,
       vatRegistrationId,
@@ -51,8 +49,6 @@ export async function POST(req: Request) {
     const vendor = await prisma.vendor.create({
       data: {
         name,
-        email,
-        phone,
         number,
         supplierService,
         vatRegistrationId,
@@ -93,8 +89,6 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const {
       name,
-      email,
-      phone,
       number,
       supplierService,
       vatRegistrationId,
@@ -108,8 +102,6 @@ export async function PUT(request: Request) {
       where: { id },
       data: {
         name,
-        email,
-        phone,
         number,
         supplierService,
         vatRegistrationId,

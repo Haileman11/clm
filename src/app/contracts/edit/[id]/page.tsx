@@ -1,13 +1,12 @@
 "use client";
 
-import { Edit } from "@refinedev/antd";
-import { useEdit } from "@refinedev/core";
+import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, Select, DatePicker, InputNumber } from "antd";
 import dayjs from "dayjs";
 
 export default function ContractEdit() {
-  const { formProps, saveButtonProps, queryResult } = useEdit();
-  const { data, isLoading } = queryResult;
+  const { formProps, saveButtonProps, queryResult } = useForm();
+  const { data, isLoading } = queryResult!;
   const record = data?.data;
 
   return (

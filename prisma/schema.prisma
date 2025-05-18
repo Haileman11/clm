@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -15,15 +14,17 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  keycloakId String   @unique
-  email      String   @unique
+  id         String    @id @default(cuid())
+  keycloakId String    @unique
+  email      String    @unique
   firstName  String
   lastName   String
   department String
   role       UserRole
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  Contract   Contract? @relation(fields: [contractId], references: [id])
+  contractId String?
 }
 
 enum UserRole {
@@ -34,24 +35,31 @@ enum UserRole {
   VENDOR
 }
 
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
 model Vendor {
-  id                String    @id @default(cuid())
+  id                String       @id @default(cuid())
   name              String
-  number            String?   @unique
+  number            String?      @unique
   supplierService   String
   vatRegistrationId String?
   address           String
   country           String
-  parentVendor      Vendor?   @relation("VendorHierarchy", fields: [parentVendorId], references: [id])
+  status            VendorStatus @default(ACTIVE)
+  parentVendor      Vendor?      @relation("VendorHierarchy", fields: [parentVendorId], references: [id])
   parentVendorId    String?
-  subVendors        Vendor[]  @relation("VendorHierarchy")
+  subVendors        Vendor[]     @relation("VendorHierarchy")
   contracts         Contract[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 }
 
 model Contract {
-  id                String    @id @default(cuid())
+  id                String         @id @default(cuid())
   name              String
   effectiveDate     DateTime
   expirationDate    DateTime
@@ -63,11 +71,11 @@ model Contract {
   currency          String
   totalValue        Float
   status            ContractStatus
-  vendor            Vendor    @relation(fields: [vendorId], references: [id])
+  vendor            Vendor         @relation(fields: [vendorId], references: [id])
   vendorId          String
   stakeholders      User[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 }
 
 enum ContractStatus {
