@@ -18,6 +18,12 @@ export default function Login() {
       <Space direction="vertical" align="center">
         <ThemedTitleV2
           collapsed={false}
+          icon={<img
+            src="/logo.png"
+            alt=""
+            style={{ height: "8px",  }}
+          />}
+          text="Contract Lifecycle Management Safaricom"
           wrapperStyles={{
             fontSize: "22px",
             marginBottom: "36px",
@@ -31,15 +37,7 @@ export default function Login() {
         >
           Sign in
         </Button>
-        <Typography.Text type="secondary">
-          Powered by
-          <img
-            style={{ padding: "0 5px" }}
-            alt="Keycloak"
-            src="https://refine.ams3.cdn.digitaloceanspaces.com/superplate-auth-icons%2Fkeycloak.svg"
-          />
-          Keycloak
-        </Typography.Text>
+        
       </Space>
     </Layout>
   );

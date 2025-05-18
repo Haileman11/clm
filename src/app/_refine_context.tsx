@@ -13,6 +13,7 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ColorModeContextProvider } from "@contexts/color-mode";
 import { dataProvider } from "@providers/data-provider";
 import "@refinedev/antd/dist/reset.css";
+import LoadingScreen from "@components/loading";
 
 type RefineContextProps = {
   defaultMode?: string;
@@ -37,7 +38,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
   const to = usePathname();
 
   if (status === "loading") {
-    return <span>loading...</span>;
+    return <LoadingScreen />;
   }
 
   const authProvider: AuthProvider = {
@@ -103,8 +104,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
   const defaultMode = props?.defaultMode;
 
   return (
-    <>
-      <GitHubBanner />
+    <>      
       <RefineKbarProvider>
         <AntdRegistry>
           <ColorModeContextProvider defaultMode={defaultMode}>
@@ -113,33 +113,44 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
               dataProvider={dataProvider}
               notificationProvider={useNotificationProvider}
               authProvider={authProvider}
+              options={{
+                syncWithLocation: true,
+                warnWhenUnsavedChanges: true,
+                useNewQueryKeys: true,
+                projectId: "zcrf0C-hsa2nM-Q75LiF",
+              }}
               resources={[
                 {
-                  name: "blog_posts",
-                  list: "/blog-posts",
-                  create: "/blog-posts/create",
-                  edit: "/blog-posts/edit/:id",
-                  show: "/blog-posts/show/:id",
+                  name: "vendors",
+                  list: "/vendors",
+                  create: "/vendors/create",
+                  edit: "/vendors/edit/:id",
+                  show: "/vendors/show/:id",
                   meta: {
                     canDelete: true,
                   },
                 },
                 {
-                  name: "categories",
-                  list: "/categories",
-                  create: "/categories/create",
-                  edit: "/categories/edit/:id",
-                  show: "/categories/show/:id",
+                  name: "contracts",
+                  list: "/contracts",
+                  create: "/contracts/create",
+                  edit: "/contracts/edit/:id",
+                  show: "/contracts/show/:id",
+                  meta: {
+                    canDelete: true,
+                  },
+                },
+                {
+                  name: "users",
+                  list: "/users",
+                  create: "/users/create",
+                  edit: "/users/edit/:id",
+                  show: "/users/show/:id",
                   meta: {
                     canDelete: true,
                   },
                 },
               ]}
-              options={{
-                syncWithLocation: true,
-                warnWhenUnsavedChanges: true,
-                useNewQueryKeys: true,
-              }}
             >
               {props.children}
               <RefineKbar />

@@ -10,6 +10,18 @@ import React, {
   useState,
 } from "react";
 
+// Custom light green theme
+const lightGreenTheme = {
+  token: {
+    colorPrimary: '#4CAF50', // Light green
+    colorSuccess: '#52c41a',
+    colorWarning: '#faad14',
+    colorError: '#ff4d4f',
+    colorInfo: '#1890ff',
+    borderRadius: 6,
+  },
+};
+
 type ColorModeContextType = {
   mode: string;
   setMode: (mode: string) => void;
@@ -60,9 +72,9 @@ export const ColorModeContextProvider: React.FC<
       }}
     >
       <ConfigProvider
-        // you can change the theme colors here. example: ...RefineThemes.Magenta,
         theme={{
-          ...RefineThemes.Blue,
+          ...lightGreenTheme,
+          // ...RefineThemes.Green,
           algorithm: mode === "light" ? defaultAlgorithm : darkAlgorithm,
         }}
       >
