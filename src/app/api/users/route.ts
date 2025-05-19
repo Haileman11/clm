@@ -4,9 +4,24 @@ import authOptions from "../auth/[...nextauth]/options";
 import { prisma } from "../../../lib/prisma";
 import KeycloakAdminClient from "@keycloak/keycloak-admin-client";
 
+// Validate required environment variables
+const requiredEnvVars = [
+  'KEYCLOAK_BASE_URL',
+  'KEYCLOAK_REALM',
+  'KEYCLOAK_ADMIN_USERNAME',
+  'KEYCLOAK_ADMIN_PASSWORD',
+  'KEYCLOAK_CLIENT_ID'
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    throw new Error(`Missing required environment variable: ${envVar}`);
+  }
+}
+
 const keycloakAdmin = new KeycloakAdminClient({
-  baseUrl: "https://lemur-0.cloud-iam.com/auth",
-  realmName: "refine",
+  baseUrl: process.env.KEYCLOAK_BASE_URL,
+  realmName: process.env.KEYCLOAK_REALM,
 });
 
 async function initKeycloak() {
@@ -48,9 +63,12 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email, firstName, lastName, department, role } = body;
 
+    // Initialize Keycloak admin client
+    await initKeycloak();
+
     // Create user in Keycloak
     const keycloakUser = await keycloakAdmin.users.create({
-      realm: "refine",
+      realm: process.env.KEYCLOAK_REALM!,
       username: email,
       email,
       firstName,
@@ -61,7 +79,7 @@ export async function POST(req: Request) {
     // Assign role in Keycloak
     await keycloakAdmin.users.addClientRoleMappings({
       id: keycloakUser.id,
-      clientUniqueId: "refine-demo",
+      clientUniqueId: process.env.KEYCLOAK_CLIENT_ID!,
       roles: [{ id: role, name: role }]
     });
 

@@ -3,14 +3,12 @@
 import {
   List,
   useTable,
-  EditButton,
   DeleteButton,
   ShowButton,
   CreateButton,
 } from "@refinedev/antd";
-import { Table, Space, Button } from "antd";
+import { Table, Space } from "antd";
 import { useGetIdentity } from "@refinedev/core";
-import { UserOutlined } from "@ant-design/icons";
 
 export default function UserManagementPage() {
   const { data: identity } = useGetIdentity();
@@ -37,7 +35,6 @@ export default function UserManagementPage() {
           dataIndex="actions"
           render={(_, record) => (
             <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
               <ShowButton hideText size="small" recordItemId={record.id} />
               <DeleteButton hideText size="small" recordItemId={record.id} />
             </Space>

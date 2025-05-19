@@ -6,6 +6,7 @@ import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import React from "react";
+import { FileTextOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
 
 import routerProvider from "@refinedev/nextjs-router";
 
@@ -114,6 +115,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
       show: "/contracts/show/:id",
       meta: {
         canDelete: isContractManager,
+        icon: <FileTextOutlined />,
       },
     },
     // Only show these resources for CONTRACT_MANAGER
@@ -127,16 +129,17 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
             show: "/vendors/show/:id",
             meta: {
               canDelete: true,
+              icon: <TeamOutlined />,
             },
           },
           {
             name: "users",
             list: "/users",
             create: "/users/create",
-            edit: "/users/edit/:id",
             show: "/users/show/:id",
             meta: {
               canDelete: true,
+              icon: <UserOutlined />,
             },
           },
         ]
