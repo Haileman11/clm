@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "CLM Safaricom",
   description: "Contract lifecycle manangement app for safaricom",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.ico",
   },
 };
 

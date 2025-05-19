@@ -6,11 +6,10 @@ import KeycloakAdminClient from "@keycloak/keycloak-admin-client";
 
 // Validate required environment variables
 const requiredEnvVars = [
-  'KEYCLOAK_BASE_URL',
-  'KEYCLOAK_REALM',
-  'KEYCLOAK_ADMIN_USERNAME',
-  'KEYCLOAK_ADMIN_PASSWORD',
-  'KEYCLOAK_CLIENT_ID'
+  "KEYCLOAK_BASE_URL",
+  "KEYCLOAK_REALM",
+  "KEYCLOAK_CLIENT_ID",
+  "KEYCLOAK_CLIENT_SECRET",
 ];
 
 for (const envVar of requiredEnvVars) {
@@ -26,10 +25,9 @@ const keycloakAdmin = new KeycloakAdminClient({
 
 async function initKeycloak() {
   await keycloakAdmin.auth({
-    username: process.env.KEYCLOAK_ADMIN_USERNAME!,
-    password: process.env.KEYCLOAK_ADMIN_PASSWORD!,
-    grantType: "password",
-    clientId: "admin-cli",
+    grantType: "client_credentials",
+    clientId: process.env.KEYCLOAK_CLIENT_ID!,
+    clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
   });
 }
 
@@ -61,32 +59,32 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { email, firstName, lastName, department, role } = body;
+    const { keycloakId, email, firstName, lastName, department, role } = body;
 
     // Initialize Keycloak admin client
     await initKeycloak();
 
     // Create user in Keycloak
-    const keycloakUser = await keycloakAdmin.users.create({
-      realm: process.env.KEYCLOAK_REALM!,
-      username: email,
-      email,
-      firstName,
-      lastName,
-      enabled: true,
-    });
+    // const keycloakUser = await keycloakAdmin.users.create({
+    //   realm: process.env.KEYCLOAK_REALM!,
+    //   username: email,
+    //   email,
+    //   firstName,
+    //   lastName,
+    //   enabled: true,
+    // });
 
     // Assign role in Keycloak
-    await keycloakAdmin.users.addClientRoleMappings({
-      id: keycloakUser.id,
-      clientUniqueId: process.env.KEYCLOAK_CLIENT_ID!,
-      roles: [{ id: role, name: role }]
-    });
+    // await keycloakAdmin.users.addClientRoleMappings({
+    //   id: keycloakId,
+    //   clientUniqueId: process.env.KEYCLOAK_CLIENT_ID!,
+    //   roles: [{ id: role, name: role }],
+    // });
 
     // Store user in local database
     const user = await prisma.user.create({
       data: {
-        keycloakId: keycloakUser.id,
+        keycloakId: keycloakId,
         email,
         firstName,
         lastName,
@@ -106,41 +104,41 @@ export async function POST(req: Request) {
 }
 
 // PUT /api/users/:id - Update a user
-export async function PUT(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// export async function PUT(request: Request) {
+//   try {
+//     const session = await getServerSession(authOptions);
+//     if (!session) {
+//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+//     }
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
-    }
+//     const { searchParams } = new URL(request.url);
+//     const id = searchParams.get("id");
+//     if (!id) {
+//       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+//     }
 
-    const body = await request.json();
-    const { email, firstName, lastName, department, roleId } = body;
+//     const body = await request.json();
+//     const { email, firstName, lastName, department, roleId } = body;
 
-    const user = await prisma.user.update({
-      where: { id },
-      data: {
-        email,
-        firstName,
-        lastName,
-        department,
-        roleId,
-      },
-      include: {
-        role: true,
-      },
-    });
+//     const user = await prisma.user.update({
+//       where: { id },
+//       data: {
+//         email,
+//         firstName,
+//         lastName,
+//         department,
+//         roleId,
+//       },
+//       include: {
+//         role: true,
+//       },
+//     });
 
-    return NextResponse.json(user);
-  } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-}
+//     return NextResponse.json(user);
+//   } catch (error) {
+//     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+//   }
+// }
 
 // DELETE /api/users/:id - Delete a user
 export async function DELETE(request: Request) {
@@ -153,7 +151,10 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) {
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
     }
 
     await prisma.user.delete({
@@ -162,6 +163,9 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ message: "User deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-} 
+}

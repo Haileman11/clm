@@ -5,19 +5,17 @@ import KeycloakAdminClient from "@keycloak/keycloak-admin-client";
 
 // Initialize Keycloak admin client
 const keycloakAdmin = new KeycloakAdminClient({
-  baseUrl: process.env.KEYCLOAK_BASE_URL!,
-  realmName: process.env.KEYCLOAK_REALM!,
+  baseUrl: process.env.KEYCLOAK_BASE_URL,
+  realmName: process.env.KEYCLOAK_REALM,
 });
 
 async function initKeycloak() {
   await keycloakAdmin.auth({
-    username: process.env.KEYCLOAK_ADMIN_USERNAME!,
-    password: process.env.KEYCLOAK_ADMIN_PASSWORD!,
-    grantType: "password",
-    clientId: "admin-cli",
+    grantType: "client_credentials",
+    clientId: process.env.KEYCLOAK_CLIENT_ID!,
+    clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
   });
 }
-
 // GET /api/users/search - Search Keycloak users
 export async function GET(request: Request) {
   try {
@@ -86,4 +84,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

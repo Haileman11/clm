@@ -3,6 +3,7 @@
 import { ThemedTitleV2 } from "@refinedev/antd";
 import { useLogin } from "@refinedev/core";
 import { Button, Layout, Space, Typography } from "antd";
+import Image from "next/image";
 
 export default function Login() {
   const { mutate: login } = useLogin();
@@ -18,14 +19,14 @@ export default function Login() {
       <Space direction="vertical" align="center">
         <ThemedTitleV2
           collapsed={false}
-          icon={<img
-            src="/logo.png"
-            alt=""
-            style={{ height: "8px",  }}
-          />}
+          icon={
+            <Image src="/icon.ico" alt="Safaricom" height={24} width={24} />
+          }
           text="Contract Lifecycle Management Safaricom"
           wrapperStyles={{
-            fontSize: "22px",
+            // fontSize: "24px",
+            display: "flex",
+            flexDirection: "column",
             marginBottom: "36px",
           }}
         />
@@ -37,7 +38,6 @@ export default function Login() {
         >
           Sign in
         </Button>
-        
       </Space>
     </Layout>
   );

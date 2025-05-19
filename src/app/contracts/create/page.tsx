@@ -1,8 +1,23 @@
 "use client";
 
-import { CONTRACT_STATUS, CONTRACT_TYPE_OPTIONS, TERM_TYPE_OPTIONS, SUPPLIER_SERVICE_OPTIONS, CURRENCY_OPTIONS, COUNTRY_OPTIONS } from "@lib/types";
+import {
+  CONTRACT_STATUS,
+  CONTRACT_TYPE_OPTIONS,
+  TERM_TYPE_OPTIONS,
+  SUPPLIER_SERVICE_OPTIONS,
+  CURRENCY_OPTIONS,
+  COUNTRY_OPTIONS,
+} from "@lib/types";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, DatePicker, InputNumber, Tooltip, Space } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  InputNumber,
+  Tooltip,
+  Space,
+} from "antd";
 import { useState } from "react";
 
 export default function ContractCreate() {
@@ -20,7 +35,7 @@ export default function ContractCreate() {
 
   const { selectProps: stakeholderSelectProps } = useSelect({
     resource: "users",
-    optionLabel: "name",
+    optionLabel: "email",
     optionValue: "id",
   });
 
@@ -38,11 +53,7 @@ export default function ContractCreate() {
   return (
     <Create saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
-        <Form.Item
-          label="Name"
-          name="name"
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="Name" name="name" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
         <Form.Item
@@ -74,9 +85,7 @@ export default function ContractCreate() {
           <Select>
             {TERM_TYPE_OPTIONS.map((option) => (
               <Select.Option key={option.value} value={option.value}>
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
+                <Tooltip title={option.description}>{option.label}</Tooltip>
               </Select.Option>
             ))}
           </Select>
@@ -89,9 +98,7 @@ export default function ContractCreate() {
           <Select>
             {CONTRACT_TYPE_OPTIONS.map((option) => (
               <Select.Option key={option.value} value={option.value}>
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
+                <Tooltip title={option.description}>{option.label}</Tooltip>
               </Select.Option>
             ))}
           </Select>
@@ -104,31 +111,23 @@ export default function ContractCreate() {
           <Select>
             {SUPPLIER_SERVICE_OPTIONS.map((option) => (
               <Select.Option key={option.value} value={option.value}>
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
+                <Tooltip title={option.description}>{option.label}</Tooltip>
               </Select.Option>
             ))}
           </Select>
         </Form.Item>
-        <Form.Item
-          label="Country"
-          name="country"
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="Country" name="country" rules={[{ required: true }]}>
           <Select
             showSearch
             placeholder="Select a country"
             optionFilterProp="label"
             filterOption={(input, option) => {
-              const label = option?.label?.props?.children || '';
+              const label = option?.label?.props?.children || "";
               return label.toLowerCase().includes(input.toLowerCase());
             }}
             options={COUNTRY_OPTIONS.map((option) => ({
               label: (
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
+                <Tooltip title={option.description}>{option.label}</Tooltip>
               ),
               value: option.value,
             }))}
@@ -143,9 +142,7 @@ export default function ContractCreate() {
             onChange={(value) => setSelectedCurrency(value)}
             options={CURRENCY_OPTIONS.map((option) => ({
               label: (
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
+                <Tooltip title={option.description}>{option.label}</Tooltip>
               ),
               value: option.value,
             }))}
@@ -158,15 +155,13 @@ export default function ContractCreate() {
         >
           <InputNumber
             style={{ width: "100%" }}
-            formatter={(value) => `${getCurrencySymbol(selectedCurrency)}${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, '')}
+            formatter={(value) =>
+              `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+            parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, "")}
           />
         </Form.Item>
-        <Form.Item
-          label="Status"
-          name="status"
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="Status" name="status" rules={[{ required: true }]}>
           <Select>
             {CONTRACT_STATUS.map((status) => (
               <Select.Option key={status} value={status}>
@@ -175,11 +170,7 @@ export default function ContractCreate() {
             ))}
           </Select>
         </Form.Item>
-        <Form.Item
-          label="Vendor"
-          name="vendorId"
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="Vendor" name="vendorId" rules={[{ required: true }]}>
           <Select {...vendorSelectProps} />
         </Form.Item>
         <Form.Item
@@ -192,4 +183,4 @@ export default function ContractCreate() {
       </Form>
     </Create>
   );
-} 
+}

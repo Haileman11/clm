@@ -17,7 +17,9 @@ interface KeycloakUser {
 
 export default function UserCreate() {
   const { formProps, saveButtonProps } = useForm();
-  const [emailOptions, setEmailOptions] = useState<{ value: string; label: string; user: KeycloakUser }[]>([]);
+  const [emailOptions, setEmailOptions] = useState<
+    { value: string; label: string; user: KeycloakUser }[]
+  >([]);
   const [searching, setSearching] = useState(false);
   const apiUrl = useApiUrl();
 
@@ -29,11 +31,13 @@ export default function UserCreate() {
 
     setSearching(true);
     try {
-      const response = await fetch(`${apiUrl}/users/search?email=${encodeURIComponent(value)}`);
+      const response = await fetch(
+        `${apiUrl}/users/search?email=${encodeURIComponent(value)}`
+      );
       if (!response.ok) {
-        throw new Error('Failed to search users');
+        throw new Error("Failed to search users");
       }
-      
+
       const data = await response.json();
 
       if (data.users && data.users.length > 0) {
@@ -45,11 +49,11 @@ export default function UserCreate() {
         setEmailOptions(options);
       } else {
         setEmailOptions([]);
-        message.info('No users found with this email');
+        message.info("No users found with this email");
       }
     } catch (error) {
       console.error("Error searching users:", error);
-      message.error('Failed to search users');
+      message.error("Failed to search users");
       setEmailOptions([]);
     } finally {
       setSearching(false);
@@ -60,6 +64,7 @@ export default function UserCreate() {
     if (option.user) {
       const user = option.user as KeycloakUser;
       formProps.form?.setFieldsValue({
+        keycloakId: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
@@ -68,7 +73,9 @@ export default function UserCreate() {
 
       // Show a message if the user is already in the system
       if (user.id) {
-        message.info('User found in Keycloak. Please review and update the details if needed.');
+        message.info(
+          "User found in Keycloak. Please review and update the details if needed."
+        );
       }
     }
   };
@@ -89,7 +96,7 @@ export default function UserCreate() {
             onSearch={handleEmailSearch}
             onSelect={handleEmailSelect}
             notFoundContent={searching ? "Searching..." : "No users found"}
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
           >
             <Input.Search
               placeholder="Search by email (minimum 3 characters)"
@@ -115,6 +122,14 @@ export default function UserCreate() {
         >
           <Input />
         </Form.Item>
+        <Form.Item
+          label="Keycloak Id"
+          name="keycloakId"
+          hidden
+          rules={[{ required: true }]}
+        >
+          <Input disabled hidden />
+        </Form.Item>
 
         <Form.Item
           label="Department"
@@ -124,20 +139,20 @@ export default function UserCreate() {
           <Input />
         </Form.Item>
 
-        <Form.Item
-          label="Role"
-          name="role"
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="Role" name="role" rules={[{ required: true }]}>
           <Select
             options={[
               { label: "Contract Manager", value: "CONTRACT_MANAGER" },
               { label: "Contract Owner", value: "CONTRACT_OWNER" },
-              { label: "Vendor", value: "VENDOR" },
+              {
+                label: "Category Sourcing Manager",
+                value: "CATEGORY_SOURCING_MANAGER",
+              },
+              { label: "Legal", value: "LEGAL" },
             ]}
           />
         </Form.Item>
       </Form>
     </Create>
   );
-} 
+}
