@@ -12,6 +12,9 @@
     "lint": "next lint",
     "refine": "refine"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
     "@ant-design/nextjs-registry": "^1.0.0",
@@ -42,6 +45,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "^14.1.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.2"
   },
   "refine": {
