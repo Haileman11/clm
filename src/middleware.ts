@@ -1,73 +1,58 @@
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
-  
-  // If user is not authenticated, redirect to login
-  if (!token) {
-    return NextResponse.redirect(new URL("/api/auth/signin", request.url));
-  }
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const isApiRoute = req.nextUrl.pathname.startsWith("/api");
+    const isUnauthorizedPage = req.nextUrl.pathname === "/unauthorized";
+    const isAuthPage = req.nextUrl.pathname === "/api/auth/signin";
 
-  // Get user role from token
-  const userRole = token.role as string;
+    // Allow access to auth pages and unauthorized page
+    if (isAuthPage || isUnauthorizedPage) {
+      return NextResponse.next();
+    }
 
-  // Check if the request is for contracts
-  if (request.nextUrl.pathname.startsWith("/api/contracts")) {
-    // For non-CONTRACT_MANAGER roles, only allow GET requests (read-only)
-    if (userRole !== "CONTRACT_MANAGER") {
-      // Allow GET requests (read-only access)
-      if (request.method === "GET") {
-        return NextResponse.next();
+    // Check if user has any role
+    if (!token?.role) {
+      // For API routes, return 403
+      if (isApiRoute) {
+        return new NextResponse(null, { status: 403 });
       }
+      // For other routes, redirect to unauthorized page
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+
+    // Check role-based access for API routes
+    if (isApiRoute) {
+      const path = req.nextUrl.pathname;
       
-      // Block all other methods (POST, PUT, DELETE, etc.)
-      return NextResponse.json(
-        { error: "You don't have permission to modify contracts. Read-only access granted." },
-        { status: 403 }
-      );
+      // Only CONTRACT_MANAGER can access these routes
+      if (
+        (path.startsWith("/api/users") || path.startsWith("/api/vendors")) &&
+        token.role !== "CONTRACT_MANAGER"
+      ) {
+        return new NextResponse(null, { status: 403 });
+      }
     }
+
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
   }
+);
 
-  // Check if the request is for users or vendors
-  if (
-    request.nextUrl.pathname.startsWith("/api/users") ||
-    request.nextUrl.pathname.startsWith("/api/vendors") ||
-    request.nextUrl.pathname.startsWith("/users") ||
-    request.nextUrl.pathname.startsWith("/vendors")
-  ) {
-    // Only CONTRACT_MANAGER can access these endpoints
-    if (userRole !== "CONTRACT_MANAGER") {
-      return NextResponse.json(
-        { error: "You don't have permission to access this resource" },
-        { status: 403 }
-      );
-    }
-  }
-
-  // For contract pages, add a header to indicate read-only status
-  if (request.nextUrl.pathname.startsWith("/contracts")) {
-    const response = NextResponse.next();
-    
-    if (userRole !== "CONTRACT_MANAGER") {
-      response.headers.set("X-Read-Only", "true");
-    }
-    
-    return response;
-  }
-
-  return NextResponse.next();
-}
-
-// Configure which paths the middleware should run on
 export const config = {
   matcher: [
-    "/api/contracts/:path*",
-    "/api/users/:path*",
-    "/api/vendors/:path*",
     "/contracts/:path*",
-    "/users/:path*",
     "/vendors/:path*",
+    "/users/:path*",
+    "/api/contracts/:path*",
+    "/api/vendors/:path*",
+    "/api/users/:path*",
+    "/unauthorized",
   ],
 }; 
