@@ -60,6 +60,7 @@ model Vendor {
 
 model Contract {
   id                String         @id @default(cuid())
+  contractNumber    String         @unique
   name              String
   effectiveDate     DateTime
   expirationDate    DateTime

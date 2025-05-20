@@ -3,6 +3,7 @@
 import { CONTRACT_STATUS, CONTRACT_TYPE_OPTIONS, TERM_TYPE_OPTIONS, SUPPLIER_SERVICE_OPTIONS, CURRENCY_OPTIONS, COUNTRY_OPTIONS } from "@lib/types";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, DatePicker, InputNumber, Tooltip, Space } from "antd";
+import { CalendarOutlined, DollarOutlined, FileTextOutlined, ShopOutlined, TeamOutlined } from "@ant-design/icons";
 import { useState } from "react";
 
 export default function ContractCreate() {
@@ -38,156 +39,210 @@ export default function ContractCreate() {
   return (
     <Create saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
+        {/* Basic Information */}
         <Form.Item
-          label="Name"
-          name="name"
-          rules={[{ required: true }]}
+          label={
+            <span>
+              <FileTextOutlined /> Basic Information
+            </span>
+          }
+          style={{ marginBottom: 0 }}
         >
-          <Input />
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="clientLegalEntity"
+            label="Client Legal Entity"
+            rules={[{ required: true }]}
+          >
+            <Input defaultValue="Safaricom Ethiopia" />
+          </Form.Item>
+          <Form.Item
+            name="termType"
+            label="Term Type"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              {TERM_TYPE_OPTIONS.map((option) => (
+                <Select.Option key={option.value} value={option.value}>
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="contractType"
+            label="Contract Type"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              {CONTRACT_TYPE_OPTIONS.map((option) => (
+                <Select.Option key={option.value} value={option.value}>
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              {CONTRACT_STATUS.map((status) => (
+                <Select.Option key={status} value={status}>
+                  {status.replace(/_/g, " ")}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
         </Form.Item>
+
+        {/* Contract Period */}
         <Form.Item
-          label="Effective Date"
-          name="effectiveDate"
-          rules={[{ required: true }]}
+          label={
+            <span>
+              <CalendarOutlined /> Contract Period
+            </span>
+          }
+          style={{ marginBottom: 0 }}
         >
-          <DatePicker style={{ width: "100%" }} />
+          <Form.Item
+            name="effectiveDate"
+            label="Effective Date"
+            rules={[{ required: true }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item
+            name="expirationDate"
+            label="Expiration Date"
+            rules={[{ required: true }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
         </Form.Item>
+
+        {/* Service Information */}
         <Form.Item
-          label="Expiration Date"
-          name="expirationDate"
-          rules={[{ required: true }]}
+          label={
+            <span>
+              <ShopOutlined /> Service Information
+            </span>
+          }
+          style={{ marginBottom: 0 }}
         >
-          <DatePicker style={{ width: "100%" }} />
+          <Form.Item
+            name="supplierService"
+            label="Supplier Service"
+            rules={[{ required: true }]}
+          >
+            <Select>
+              {SUPPLIER_SERVICE_OPTIONS.map((option) => (
+                <Select.Option key={option.value} value={option.value}>
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="country"
+            label="Country"
+            rules={[{ required: true }]}
+          >
+            <Select
+              showSearch
+              placeholder="Select a country"
+              optionFilterProp="label"
+              filterOption={(input, option) => {
+                const label = option?.label?.props?.children || '';
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+              options={COUNTRY_OPTIONS.map((option) => ({
+                label: (
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
+                ),
+                value: option.value,
+              }))}
+            />
+          </Form.Item>
         </Form.Item>
+
+        {/* Financial Information */}
         <Form.Item
-          label="Client Legal Entity"
-          name="clientLegalEntity"
-          rules={[{ required: true }]}
+          label={
+            <span>
+              <DollarOutlined /> Financial Information
+            </span>
+          }
+          style={{ marginBottom: 0 }}
         >
-          <Input defaultValue="Safaricom Ethiopia" />
+          <Form.Item
+            name="currency"
+            label="Currency"
+            rules={[{ required: true }]}
+          >
+            <Select
+              onChange={(value) => setSelectedCurrency(value)}
+              options={CURRENCY_OPTIONS.map((option) => ({
+                label: (
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
+                ),
+                value: option.value,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item
+            name="totalValue"
+            label="Total Contract Value"
+            rules={[{ required: true }]}
+          >
+            <InputNumber
+              style={{ width: "100%" }}
+              formatter={(value) => `${getCurrencySymbol(selectedCurrency)}${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, '')}
+            />
+          </Form.Item>
         </Form.Item>
+
+        {/* Stakeholders */}
         <Form.Item
-          label="Term Type"
-          name="termType"
-          rules={[{ required: true }]}
+          label={
+            <span>
+              <TeamOutlined /> Stakeholders
+            </span>
+          }
+          style={{ marginBottom: 0 }}
         >
-          <Select>
-            {TERM_TYPE_OPTIONS.map((option) => (
-              <Select.Option key={option.value} value={option.value}>
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label="Contract Type"
-          name="contractType"
-          rules={[{ required: true }]}
-        >
-          <Select>
-            {CONTRACT_TYPE_OPTIONS.map((option) => (
-              <Select.Option key={option.value} value={option.value}>
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label="Supplier Service"
-          name="supplierService"
-          rules={[{ required: true }]}
-        >
-          <Select>
-            {SUPPLIER_SERVICE_OPTIONS.map((option) => (
-              <Select.Option key={option.value} value={option.value}>
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label="Country"
-          name="country"
-          rules={[{ required: true }]}
-        >
-          <Select
-            showSearch
-            placeholder="Select a country"
-            optionFilterProp="label"
-            filterOption={(input, option) => {
-              const label = option?.label?.props?.children || '';
-              return label.toLowerCase().includes(input.toLowerCase());
-            }}
-            options={COUNTRY_OPTIONS.map((option) => ({
-              label: (
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
-              ),
-              value: option.value,
-            }))}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Currency"
-          name="currency"
-          rules={[{ required: true }]}
-        >
-          <Select
-            onChange={(value) => setSelectedCurrency(value)}
-            options={CURRENCY_OPTIONS.map((option) => ({
-              label: (
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
-              ),
-              value: option.value,
-            }))}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Total Contract Value"
-          name="totalValue"
-          rules={[{ required: true }]}
-        >
-          <InputNumber
-            style={{ width: "100%" }}
-            formatter={(value) => `${getCurrencySymbol(selectedCurrency)}${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, '')}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Status"
-          name="status"
-          rules={[{ required: true }]}
-        >
-          <Select>
-            {CONTRACT_STATUS.map((status) => (
-              <Select.Option key={status} value={status}>
-                {status.replace(/_/g, " ")}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-        <Form.Item
-          label="Vendor"
-          name="vendorId"
-          rules={[{ required: true }]}
-        >
-          <Select {...vendorSelectProps} />
-        </Form.Item>
-        <Form.Item
-          label="Stakeholders"
-          name="stakeholders"
-          rules={[{ required: true }]}
-        >
-          <Select {...stakeholderSelectProps} mode="multiple" />
+          <Form.Item
+            name="vendorId"
+            label="Vendor"
+            rules={[{ required: true }]}
+          >
+            <Select {...vendorSelectProps} />
+          </Form.Item>
+          <Form.Item
+            name="stakeholders"
+            label="Stakeholders"
+            rules={[{ required: true }]}
+          >
+            <Select {...stakeholderSelectProps} mode="multiple" />
+          </Form.Item>
         </Form.Item>
       </Form>
     </Create>
