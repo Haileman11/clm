@@ -27,6 +27,26 @@ export async function GET() {
   }
 }
 
+// Function to generate contract number
+async function generateContractNumber() {
+  // Get the latest contract number
+  const latestContract = await prisma.contract.findFirst({
+    orderBy: {
+      contractNumber: 'desc'
+    }
+  });
+
+  let nextNumber = 1;
+  if (latestContract?.contractNumber) {
+    // Extract the number from the latest contract number (CN00001)
+    const lastNumber = parseInt(latestContract.contractNumber.replace('CN', ''));
+    nextNumber = lastNumber + 1;
+  }
+
+  // Format the number with leading zeros (5 digits)
+  return `CN${nextNumber.toString().padStart(5, '0')}`;
+}
+
 // POST /api/contracts - Create a new contract
 export async function POST(req: Request) {
   try {
@@ -35,44 +55,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const {
-      name,
-      effectiveDate,
-      expirationDate,
-      clientLegalEntity,
-      termType,
-      contractType,
-      supplierService,
-      country,
-      currency,
-      totalValue,
-      status,
-      vendorId,
-      stakeholders,
-    } = body;
+    const data = await req.json();
+    
+    // Generate contract number
+    const contractNumber = await generateContractNumber();
 
     const contract = await prisma.contract.create({
       data: {
-        name,
-        effectiveDate: new Date(effectiveDate),
-        expirationDate: new Date(expirationDate),
-        clientLegalEntity,
-        termType,
-        contractType,
-        supplierService,
-        country,
-        currency,
-        totalValue,
-        status,
-        vendorId,
-        stakeholders: {
-          connect: stakeholders.map((id: string) => ({ id })),
-        },
-      },
-      include: {
-        vendor: true,
-        stakeholders: true,
+        ...data,
+        contractNumber,
       },
     });
 
@@ -80,7 +71,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error creating contract:", error);
     return NextResponse.json(
-      { error: "Failed to create contract" },
+      { error: "Error creating contract" },
       { status: 500 }
     );
   }
