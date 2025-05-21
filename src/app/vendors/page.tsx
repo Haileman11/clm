@@ -23,7 +23,7 @@ export default function VendorList() {
           value: searchText,
         },
       ],
-    },      
+    },
   });
 
   return (
@@ -42,7 +42,7 @@ export default function VendorList() {
     >
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="name" title="Name" />
-        <Table.Column dataIndex="number" title="Number" />
+        <Table.Column dataIndex="vendorNumber" title="Vendor Number" />
         <Table.Column dataIndex="supplierService" title="Service" />
         <Table.Column dataIndex="vatRegistrationId" title="VAT ID" />
         <Table.Column dataIndex="address" title="Address" />
@@ -61,4 +61,4 @@ export default function VendorList() {
       </Table>
     </List>
   );
-} 
+}

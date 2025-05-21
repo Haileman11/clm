@@ -2,15 +2,40 @@
 
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, DatePicker, InputNumber, Tooltip } from "antd";
-import { CalendarOutlined, DollarOutlined, FileTextOutlined, ShopOutlined, TeamOutlined } from "@ant-design/icons";
-import { CONTRACT_STATUS, CONTRACT_TYPE_OPTIONS, TERM_TYPE_OPTIONS, SUPPLIER_SERVICE_OPTIONS, CURRENCY_OPTIONS, COUNTRY_OPTIONS } from "@lib/types";
+import {
+  CalendarOutlined,
+  DollarOutlined,
+  FileTextOutlined,
+  ShopOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
+import {
+  CONTRACT_STATUS,
+  CONTRACT_TYPE_OPTIONS,
+  TERM_TYPE_OPTIONS,
+  SUPPLIER_SERVICE_OPTIONS,
+  CURRENCY_OPTIONS,
+  COUNTRY_OPTIONS,
+} from "@lib/types";
 import dayjs from "dayjs";
 import { useState } from "react";
 
 export default function ContractEdit() {
-  const { formProps, saveButtonProps, queryResult } = useForm();
+  const { formProps, saveButtonProps, queryResult } = useForm({
+    onMutationSuccess: (data, variables: any) => {
+      console.log(data, variables);
+      if (variables.stakeholders) {
+        variables.stakeholders = variables.stakeholders.map(
+          (stakeholder: any) => {
+            stakeholder.id;
+          }
+        );
+      }
+    },
+  });
   const [selectedCurrency, setSelectedCurrency] = useState<string>("ETB");
-
+  const { data, isLoading } = queryResult!;
+  const record = data?.data;
   const { selectProps: vendorSelectProps } = useSelect({
     resource: "vendors",
     optionLabel: "name",
@@ -19,8 +44,15 @@ export default function ContractEdit() {
 
   const { selectProps: stakeholderSelectProps } = useSelect({
     resource: "users",
-    optionLabel: "name",
+    optionLabel: "email",
     optionValue: "id",
+    filters: [
+      {
+        field: "id",
+        operator: "ne",
+        value: record?.id,
+      },
+    ],
   });
 
   const getCurrencySymbol = (currency: string) => {
@@ -35,7 +67,7 @@ export default function ContractEdit() {
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit saveButtonProps={saveButtonProps} isLoading={isLoading}>
       <Form {...formProps} layout="vertical">
         {/* Basic Information */}
         <Form.Item
@@ -46,11 +78,7 @@ export default function ContractEdit() {
           }
           style={{ marginBottom: 0 }}
         >
-          <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           <Form.Item
@@ -68,9 +96,7 @@ export default function ContractEdit() {
             <Select>
               {TERM_TYPE_OPTIONS.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
-                  <Tooltip title={option.description}>
-                    {option.label}
-                  </Tooltip>
+                  <Tooltip title={option.description}>{option.label}</Tooltip>
                 </Select.Option>
               ))}
             </Select>
@@ -83,18 +109,12 @@ export default function ContractEdit() {
             <Select>
               {CONTRACT_TYPE_OPTIONS.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
-                  <Tooltip title={option.description}>
-                    {option.label}
-                  </Tooltip>
+                  <Tooltip title={option.description}>{option.label}</Tooltip>
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="status" label="Status" rules={[{ required: true }]}>
             <Select>
               {CONTRACT_STATUS.map((status) => (
                 <Select.Option key={status} value={status}>
@@ -153,9 +173,7 @@ export default function ContractEdit() {
             <Select>
               {SUPPLIER_SERVICE_OPTIONS.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
-                  <Tooltip title={option.description}>
-                    {option.label}
-                  </Tooltip>
+                  <Tooltip title={option.description}>{option.label}</Tooltip>
                 </Select.Option>
               ))}
             </Select>
@@ -170,14 +188,12 @@ export default function ContractEdit() {
               placeholder="Select a country"
               optionFilterProp="label"
               filterOption={(input, option) => {
-                const label = option?.label?.props?.children || '';
+                const label = option?.label?.props?.children || "";
                 return label.toLowerCase().includes(input.toLowerCase());
               }}
               options={COUNTRY_OPTIONS.map((option) => ({
                 label: (
-                  <Tooltip title={option.description}>
-                    {option.label}
-                  </Tooltip>
+                  <Tooltip title={option.description}>{option.label}</Tooltip>
                 ),
                 value: option.value,
               }))}
@@ -203,9 +219,7 @@ export default function ContractEdit() {
               onChange={(value) => setSelectedCurrency(value)}
               options={CURRENCY_OPTIONS.map((option) => ({
                 label: (
-                  <Tooltip title={option.description}>
-                    {option.label}
-                  </Tooltip>
+                  <Tooltip title={option.description}>{option.label}</Tooltip>
                 ),
                 value: option.value,
               }))}
@@ -218,8 +232,13 @@ export default function ContractEdit() {
           >
             <InputNumber
               style={{ width: "100%" }}
-              formatter={(value) => `${getCurrencySymbol(selectedCurrency)}${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, '')}
+              formatter={(value) =>
+                `${getCurrencySymbol(selectedCurrency)}${value}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ","
+                )
+              }
+              parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, "")}
             />
           </Form.Item>
         </Form.Item>
@@ -251,4 +270,4 @@ export default function ContractEdit() {
       </Form>
     </Edit>
   );
-} 
+}

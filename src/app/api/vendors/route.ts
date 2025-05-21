@@ -26,6 +26,26 @@ export async function GET() {
   }
 }
 
+// Function to generate vendor number
+async function generateVendorNumber() {
+  // Get the latest vendor number
+  const latestVendor = await prisma.vendor.findFirst({
+    orderBy: {
+      vendorNumber: "desc",
+    },
+  });
+
+  let nextNumber = 1;
+  if (latestVendor?.vendorNumber) {
+    // Extract the number from the latest vendor number (VN0001)
+    const lastNumber = parseInt(latestVendor.vendorNumber.replace("VN", ""));
+    nextNumber = lastNumber + 1;
+  }
+
+  // Format the number with leading zeros (4 digits)
+  return `VN${nextNumber.toString().padStart(4, "0")}`;
+}
+
 // POST /api/vendors - Create a new vendor
 export async function POST(req: Request) {
   try {
@@ -34,10 +54,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const vendorNumber = await generateVendorNumber();
     const body = await req.json();
     const {
       name,
-      number,
       supplierService,
       vatRegistrationId,
       address,
@@ -49,7 +69,7 @@ export async function POST(req: Request) {
     const vendor = await prisma.vendor.create({
       data: {
         name,
-        number,
+        vendorNumber,
         supplierService,
         vatRegistrationId,
         address,
@@ -71,76 +91,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
-// PUT /api/vendors/:id - Update a vendor
-export async function PUT(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
-      return NextResponse.json({ error: "Vendor ID is required" }, { status: 400 });
-    }
-
-    const body = await request.json();
-    const {
-      name,
-      number,
-      supplierService,
-      vatRegistrationId,
-      address,
-      country,
-      status,
-      parentVendorId,
-    } = body;
-
-    const vendor = await prisma.vendor.update({
-      where: { id },
-      data: {
-        name,
-        number,
-        supplierService,
-        vatRegistrationId,
-        address,
-        country,
-        status,
-        parentVendorId,
-      },
-      include: {
-        parentVendor: true,
-      },
-    });
-
-    return NextResponse.json(vendor);
-  } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-}
-
-// DELETE /api/vendors/:id - Delete a vendor
-export async function DELETE(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
-      return NextResponse.json({ error: "Vendor ID is required" }, { status: 400 });
-    }
-
-    await prisma.vendor.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({ message: "Vendor deleted successfully" });
-  } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-} 

@@ -4,7 +4,12 @@ import { JWT } from "next-auth/jwt";
 import { Session, DefaultSession } from "next-auth";
 import { NextAuthOptions } from "next-auth";
 
-type UserRole = "CONTRACT_MANAGER" | "CONTRACT_OWNER" | "CATEGORY_SOURCING_MANAGER" | "LEGAL_TEAM" | "VENDOR";
+type UserRole =
+  | "CONTRACT_MANAGER"
+  | "CONTRACT_OWNER"
+  | "CATEGORY_SOURCING_MANAGER"
+  | "LEGAL_TEAM"
+  | "VENDOR";
 
 declare module "next-auth" {
   interface Session {
@@ -25,7 +30,9 @@ if (!process.env.KEYCLOAK_CLIENT_ID) {
 }
 
 if (!process.env.KEYCLOAK_CLIENT_SECRET) {
-  throw new Error("KEYCLOAK_CLIENT_SECRET is not defined in environment variables");
+  throw new Error(
+    "KEYCLOAK_CLIENT_SECRET is not defined in environment variables"
+  );
 }
 
 if (!process.env.KEYCLOAK_ISSUER) {
@@ -60,7 +67,7 @@ const authOptions: NextAuthOptions = {
         const dbUser = await prisma.user.findUnique({
           where: { keycloakId: user.id },
         });
-        
+
         if (dbUser) {
           token.role = dbUser.role;
         }
@@ -72,6 +79,10 @@ const authOptions: NextAuthOptions = {
         session.user.role = token.role;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // optional: customize redirect after signOut
+      return baseUrl;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

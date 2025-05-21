@@ -3,7 +3,22 @@
 import { Show } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
 import { Typography, Card, Descriptions, Tag, Space, Divider } from "antd";
-import { CalendarOutlined, DollarOutlined, FileTextOutlined, ShopOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import {
+  CalendarOutlined,
+  DollarOutlined,
+  FileTextOutlined,
+  ShopOutlined,
+  TeamOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
+import {
+  CONTRACT_STATUS,
+  CONTRACT_TYPE_OPTIONS,
+  TERM_TYPE_OPTIONS,
+  SUPPLIER_SERVICE_OPTIONS,
+  CURRENCY_OPTIONS,
+  COUNTRY_OPTIONS,
+} from "@lib/types";
 
 const { Title, Text } = Typography;
 
@@ -25,6 +40,24 @@ export default function ContractShow() {
     }
   };
 
+  const getCurrencySymbol = (currency: string) => {
+    switch (currency) {
+      case "ETB":
+        return "Br ";
+      case "USD":
+        return "$ ";
+      default:
+        return "";
+    }
+  };
+
+  const getOptionLabel = (
+    value: string,
+    options: { value: string; label: string }[]
+  ) => {
+    return options.find((option) => option.value === value)?.label || value;
+  };
+
   return (
     <Show isLoading={isLoading}>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -35,33 +68,22 @@ export default function ContractShow() {
               <FileTextOutlined /> Basic Information
             </Title>
             <Descriptions bordered column={2}>
-              <Descriptions.Item label="Contract Number" span={2}>
-                <Text strong>{record?.contractNumber}</Text>
+              <Descriptions.Item label="Name" span={2}>
+                <Text strong>{record?.name}</Text>
               </Descriptions.Item>
-              <Descriptions.Item label="Description" span={2}>
-                {record?.description}
+              <Descriptions.Item label="Client Legal Entity" span={2}>
+                {record?.clientLegalEntity}
+              </Descriptions.Item>
+              <Descriptions.Item label="Term Type">
+                {getOptionLabel(record?.termType, TERM_TYPE_OPTIONS)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Contract Type">
+                {getOptionLabel(record?.contractType, CONTRACT_TYPE_OPTIONS)}
               </Descriptions.Item>
               <Descriptions.Item label="Status">
                 <Tag color={getStatusColor(record?.status)}>
-                  {record?.status}
+                  {record?.status?.replace(/_/g, " ")}
                 </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Value">
-                <Text strong>${record?.value?.toLocaleString()}</Text>
-              </Descriptions.Item>
-            </Descriptions>
-          </Space>
-        </Card>
-
-        {/* Vendor Information */}
-        <Card>
-          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-            <Title level={4}>
-              <ShopOutlined /> Vendor Information
-            </Title>
-            <Descriptions bordered column={1}>
-              <Descriptions.Item label="Vendor Name">
-                <Text strong>{record?.vendor?.name}</Text>
               </Descriptions.Item>
             </Descriptions>
           </Space>
@@ -74,11 +96,79 @@ export default function ContractShow() {
               <CalendarOutlined /> Contract Period
             </Title>
             <Descriptions bordered column={2}>
-              <Descriptions.Item label="Start Date">
-                {new Date(record?.startDate).toLocaleDateString()}
+              <Descriptions.Item label="Effective Date">
+                {record?.effectiveDate
+                  ? new Date(record.effectiveDate).toLocaleDateString()
+                  : "-"}
               </Descriptions.Item>
-              <Descriptions.Item label="End Date">
-                {new Date(record?.endDate).toLocaleDateString()}
+              <Descriptions.Item label="Expiration Date">
+                {record?.expirationDate
+                  ? new Date(record.expirationDate).toLocaleDateString()
+                  : "-"}
+              </Descriptions.Item>
+            </Descriptions>
+          </Space>
+        </Card>
+
+        {/* Service Information */}
+        <Card>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            <Title level={4}>
+              <ShopOutlined /> Service Information
+            </Title>
+            <Descriptions bordered column={2}>
+              <Descriptions.Item label="Supplier Service">
+                {getOptionLabel(
+                  record?.supplierService,
+                  SUPPLIER_SERVICE_OPTIONS
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="Country">
+                {getOptionLabel(record?.country, COUNTRY_OPTIONS)}
+              </Descriptions.Item>
+            </Descriptions>
+          </Space>
+        </Card>
+
+        {/* Financial Information */}
+        <Card>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            <Title level={4}>
+              <DollarOutlined /> Financial Information
+            </Title>
+            <Descriptions bordered column={2}>
+              <Descriptions.Item label="Currency">
+                {getOptionLabel(record?.currency, CURRENCY_OPTIONS)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Total Contract Value">
+                <Text strong>
+                  {getCurrencySymbol(record?.currency)}
+                  {record?.totalValue?.toLocaleString()}
+                </Text>
+              </Descriptions.Item>
+            </Descriptions>
+          </Space>
+        </Card>
+
+        {/* Stakeholders */}
+        <Card>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            <Title level={4}>
+              <TeamOutlined /> Stakeholders
+            </Title>
+            <Descriptions bordered column={1}>
+              <Descriptions.Item label="Vendor">
+                <Text strong>{record?.vendor?.name}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Stakeholders">
+                <Space direction="vertical">
+                  {record?.stakeholders?.map((stakeholder: any) => (
+                    <Text key={stakeholder.id}>
+                      {stakeholder.firstName} {stakeholder.lastName} (
+                      {stakeholder.email})
+                    </Text>
+                  ))}
+                </Space>
               </Descriptions.Item>
             </Descriptions>
           </Space>
@@ -92,10 +182,14 @@ export default function ContractShow() {
             </Title>
             <Descriptions bordered column={2}>
               <Descriptions.Item label="Created At">
-                {new Date(record?.createdAt).toLocaleString()}
+                {record?.createdAt
+                  ? new Date(record.createdAt).toLocaleString()
+                  : "-"}
               </Descriptions.Item>
               <Descriptions.Item label="Updated At">
-                {new Date(record?.updatedAt).toLocaleString()}
+                {record?.updatedAt
+                  ? new Date(record.updatedAt).toLocaleString()
+                  : "-"}
               </Descriptions.Item>
             </Descriptions>
           </Space>
@@ -103,4 +197,4 @@ export default function ContractShow() {
       </Space>
     </Show>
   );
-} 
+}

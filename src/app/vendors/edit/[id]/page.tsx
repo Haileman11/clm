@@ -25,17 +25,7 @@ export default function VendorEdit() {
   return (
     <Edit saveButtonProps={saveButtonProps} isLoading={isLoading}>
       <Form {...formProps} layout="vertical">
-        <Form.Item
-          label="Name"
-          name="name"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="Number"
-          name="number"
-        >
+        <Form.Item label="Name" name="name" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
         <Form.Item
@@ -46,69 +36,47 @@ export default function VendorEdit() {
           <Select>
             {SUPPLIER_SERVICE_OPTIONS.map((option) => (
               <Select.Option key={option.value} value={option.value}>
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
+                <Tooltip title={option.description}>{option.label}</Tooltip>
               </Select.Option>
             ))}
           </Select>
         </Form.Item>
-        <Form.Item
-          label="VAT Registration ID"
-          name="vatRegistrationId"
-        >
+        <Form.Item label="VAT Registration ID" name="vatRegistrationId">
           <Input />
         </Form.Item>
-        <Form.Item
-          label="Address"
-          name="address"
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="Address" name="address" rules={[{ required: true }]}>
           <Input.TextArea rows={4} />
         </Form.Item>
-        <Form.Item
-          label="Country"
-          name="country"
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="Country" name="country" rules={[{ required: true }]}>
           <Select
             showSearch
             placeholder="Select a country"
             optionFilterProp="label"
             filterOption={(input, option) => {
-              const label = option?.label?.props?.children || '';
+              const label = option?.label?.props?.children || "";
               return label.toLowerCase().includes(input.toLowerCase());
             }}
             options={COUNTRY_OPTIONS.map((option) => ({
               label: (
-                <Tooltip title={option.description}>
-                  {option.label}
-                </Tooltip>
+                <Tooltip title={option.description}>{option.label}</Tooltip>
               ),
               value: option.value,
             }))}
           />
         </Form.Item>
-        <Form.Item
-          label="Status"
-          name="status"
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="Status" name="status" rules={[{ required: true }]}>
           <Select
             options={[
               { label: "Active", value: "ACTIVE" },
               { label: "Inactive", value: "INACTIVE" },
-              { label: "Pending", value: "PENDING" }
+              { label: "Pending", value: "PENDING" },
             ]}
           />
         </Form.Item>
-        <Form.Item
-          label="Parent Vendor"
-          name="parentVendorId"
-        >
+        <Form.Item label="Parent Vendor" name="parentVendorId">
           <Select {...parentVendorSelectProps} />
         </Form.Item>
       </Form>
     </Edit>
   );
-} 
+}

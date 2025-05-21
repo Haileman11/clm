@@ -18,11 +18,15 @@ export async function GET(
       where: { id: params.id },
       include: {
         vendor: true,
+        stakeholders: true,
       },
     });
 
     if (!contract) {
-      return NextResponse.json({ error: "Contract not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Contract not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(contract);
@@ -33,4 +37,105 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}
+
+// PATCH /api/contracts/:id - Update a contract
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const id = params.id;
+    if (!id) {
+      return NextResponse.json(
+        { error: "Contract ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    const {
+      name,
+      effectiveDate,
+      expirationDate,
+      clientLegalEntity,
+      termType,
+      contractType,
+      supplierService,
+      country,
+      currency,
+      totalValue,
+      status,
+      vendorId,
+      stakeholders,
+    } = body;
+
+    const contract = await prisma.contract.update({
+      where: { id },
+      data: {
+        name,
+        effectiveDate: new Date(effectiveDate),
+        expirationDate: new Date(expirationDate),
+        clientLegalEntity,
+        termType,
+        contractType,
+        supplierService,
+        country,
+        currency,
+        totalValue,
+        status,
+        vendorId,
+        stakeholders: {
+          set: stakeholders.map((id: string) => ({ id })),
+        },
+      },
+      include: {
+        vendor: true,
+        stakeholders: true,
+      },
+    });
+
+    return NextResponse.json(contract);
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/contracts/:id - Delete a contract
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json(
+        { error: "Contract ID is required" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.contract.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Contract deleted successfully" });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

@@ -33,4 +33,89 @@ export async function GET(
       { status: 500 }
     );
   }
-} 
+}
+
+// PATCH /api/vendors/:id - Update a vendor
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const id = params.id;
+    if (!id) {
+      return NextResponse.json(
+        { error: "Vendor ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    const {
+      name,
+      supplierService,
+      vatRegistrationId,
+      address,
+      country,
+      status,
+      parentVendorId,
+    } = body;
+
+    const vendor = await prisma.vendor.update({
+      where: { id },
+      data: {
+        name,
+        supplierService,
+        vatRegistrationId,
+        address,
+        country,
+        status,
+        parentVendorId,
+      },
+      include: {
+        parentVendor: true,
+      },
+    });
+
+    return NextResponse.json(vendor);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/vendors/:id - Delete a vendor
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json(
+        { error: "Vendor ID is required" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.vendor.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Vendor deleted successfully" });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
