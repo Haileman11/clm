@@ -58,6 +58,20 @@ export default function ContractShow() {
     return options.find((option) => option.value === value)?.label || value;
   };
 
+  const renderStakeholderList = (stakeholders: any[]) => {
+    if (!stakeholders?.length) return <Text type="secondary">None</Text>;
+    
+    return (
+      <Space direction="vertical">
+        {stakeholders.map((stakeholder: any) => (
+          <Text key={stakeholder.id}>
+            {stakeholder.firstName} {stakeholder.lastName} ({stakeholder.email})
+          </Text>
+        ))}
+      </Space>
+    );
+  };
+
   return (
     <Show isLoading={isLoading}>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -160,15 +174,17 @@ export default function ContractShow() {
               <Descriptions.Item label="Vendor">
                 <Text strong>{record?.vendor?.name}</Text>
               </Descriptions.Item>
-              <Descriptions.Item label="Stakeholders">
-                <Space direction="vertical">
-                  {record?.stakeholders?.map((stakeholder: any) => (
-                    <Text key={stakeholder.id}>
-                      {stakeholder.firstName} {stakeholder.lastName} (
-                      {stakeholder.email})
-                    </Text>
-                  ))}
-                </Space>
+              <Descriptions.Item label="Contract Managers">
+                {renderStakeholderList(record?.contractManagers || [])}
+              </Descriptions.Item>
+              <Descriptions.Item label="Contract Owners">
+                {renderStakeholderList(record?.contractOwners || [])}
+              </Descriptions.Item>
+              <Descriptions.Item label="Legal Team">
+                {renderStakeholderList(record?.legalTeam || [])}
+              </Descriptions.Item>
+              <Descriptions.Item label="Category Sourcing Managers">
+                {renderStakeholderList(record?.categorySourcingManagers || [])}
               </Descriptions.Item>
             </Descriptions>
           </Space>

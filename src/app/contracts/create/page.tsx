@@ -17,6 +17,7 @@ import {
   InputNumber,
   Tooltip,
   Space,
+  Typography,
 } from "antd";
 import {
   CalendarOutlined,
@@ -26,10 +27,69 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { useState } from "react";
+import dayjs from "dayjs";
+import { BaseRecord, HttpError } from "@refinedev/core";
+
+const { Text } = Typography;
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+}
+
+interface Stakeholder {
+  userId: string;
+  role: string;
+}
+
+interface ContractFormValues extends BaseRecord {
+  name: string;
+  clientLegalEntity: string;
+  termType: string;
+  contractType: string;
+  status: string;
+  effectiveDate: string;
+  expirationDate: string;
+  supplierService: string;
+  country: string;
+  currency: string;
+  totalValue: number;
+  vendorId: string;
+  stakeholders: {
+    [key: string]: string[];
+  };
+}
+
+const STAKEHOLDER_ROLES = [
+  { value: "CONTRACT_MANAGER", label: "Contract Manager", required: true },
+  { value: "CONTRACT_OWNER", label: "Contract Owner", required: true },
+  { value: "LEGAL_TEAM", label: "Legal Team", required: false },
+  { value: "CATEGORY_SOURCING_MANAGER", label: "Category Sourcing Manager", required: false },
+] as const;
 
 export default function ContractCreate() {
-  const { formProps, saveButtonProps } = useForm({
+  const { formProps, saveButtonProps } = useForm<ContractFormValues, HttpError, ContractFormValues>({
     resource: "contracts",
+    onMutationSuccess: (data, variables) => {
+      // Transform stakeholders to the unified format
+      if (variables.stakeholders) {
+        const transformedStakeholders: Stakeholder[] = [];
+        for (const [role, userIds] of Object.entries(variables.stakeholders)) {
+          if (Array.isArray(userIds)) {
+            userIds.forEach(userId => {
+              transformedStakeholders.push({
+                userId: typeof userId === 'object' && userId !== null ? (userId as { id: string }).id : userId,
+                role
+              });
+            });
+          }
+        }
+        variables.stakeholders = transformedStakeholders as any;
+      }
+    }
   });
 
   const [selectedCurrency, setSelectedCurrency] = useState<string>("ETB");
@@ -40,10 +100,40 @@ export default function ContractCreate() {
     optionValue: "id",
   });
 
-  const { selectProps: stakeholderSelectProps } = useSelect({
+  const { selectProps: contractManagerSelectProps } = useSelect<User>({
     resource: "users",
-    optionLabel: "email",
+    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
     optionValue: "id",
+    meta: {
+      role: "CONTRACT_MANAGER"
+    }
+  });
+
+  const { selectProps: contractOwnerSelectProps } = useSelect<User>({
+    resource: "users",
+    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
+    optionValue: "id",
+    meta: {
+      role: "CONTRACT_OWNER"
+    }
+  });
+
+  const { selectProps: legalTeamSelectProps } = useSelect<User>({
+    resource: "users",
+    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
+    optionValue: "id",
+    meta: {
+      role: "LEGAL_TEAM"
+    }
+  });
+
+  const { selectProps: categorySourcingManagerSelectProps } = useSelect<User>({
+    resource: "users",
+    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
+    optionValue: "id",
+    meta: {
+      role: "CATEGORY_SOURCING_MANAGER"
+    }
   });
 
   const getCurrencySymbol = (currency: string) => {
@@ -69,7 +159,11 @@ export default function ContractCreate() {
           }
           style={{ marginBottom: 0 }}
         >
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item
@@ -77,7 +171,7 @@ export default function ContractCreate() {
             label="Client Legal Entity"
             rules={[{ required: true }]}
           >
-            <Input defaultValue="Safaricom Ethiopia" />
+            <Input />
           </Form.Item>
           <Form.Item
             name="termType"
@@ -87,7 +181,9 @@ export default function ContractCreate() {
             <Select>
               {TERM_TYPE_OPTIONS.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
-                  <Tooltip title={option.description}>{option.label}</Tooltip>
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
                 </Select.Option>
               ))}
             </Select>
@@ -100,12 +196,18 @@ export default function ContractCreate() {
             <Select>
               {CONTRACT_TYPE_OPTIONS.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
-                  <Tooltip title={option.description}>{option.label}</Tooltip>
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="status" label="Status" rules={[{ required: true }]}>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true }]}
+          >
             <Select>
               {CONTRACT_STATUS.map((status) => (
                 <Select.Option key={status} value={status}>
@@ -129,6 +231,9 @@ export default function ContractCreate() {
             name="effectiveDate"
             label="Effective Date"
             rules={[{ required: true }]}
+            getValueProps={(value) => ({
+              value: value ? dayjs(value) : undefined,
+            })}
           >
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
@@ -136,6 +241,9 @@ export default function ContractCreate() {
             name="expirationDate"
             label="Expiration Date"
             rules={[{ required: true }]}
+            getValueProps={(value) => ({
+              value: value ? dayjs(value) : undefined,
+            })}
           >
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
@@ -158,7 +266,9 @@ export default function ContractCreate() {
             <Select>
               {SUPPLIER_SERVICE_OPTIONS.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
-                  <Tooltip title={option.description}>{option.label}</Tooltip>
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
                 </Select.Option>
               ))}
             </Select>
@@ -173,12 +283,14 @@ export default function ContractCreate() {
               placeholder="Select a country"
               optionFilterProp="label"
               filterOption={(input, option) => {
-                const label = option?.label?.props?.children || "";
+                const label = option?.label?.props?.children || '';
                 return label.toLowerCase().includes(input.toLowerCase());
               }}
               options={COUNTRY_OPTIONS.map((option) => ({
                 label: (
-                  <Tooltip title={option.description}>{option.label}</Tooltip>
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
                 ),
                 value: option.value,
               }))}
@@ -204,7 +316,9 @@ export default function ContractCreate() {
               onChange={(value) => setSelectedCurrency(value)}
               options={CURRENCY_OPTIONS.map((option) => ({
                 label: (
-                  <Tooltip title={option.description}>{option.label}</Tooltip>
+                  <Tooltip title={option.description}>
+                    {option.label}
+                  </Tooltip>
                 ),
                 value: option.value,
               }))}
@@ -217,13 +331,8 @@ export default function ContractCreate() {
           >
             <InputNumber
               style={{ width: "100%" }}
-              formatter={(value) =>
-                `${getCurrencySymbol(selectedCurrency)}${value}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )
-              }
-              parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, "")}
+              formatter={(value) => `${getCurrencySymbol(selectedCurrency)}${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, '')}
             />
           </Form.Item>
         </Form.Item>
@@ -244,12 +353,77 @@ export default function ContractCreate() {
           >
             <Select {...vendorSelectProps} />
           </Form.Item>
+          
           <Form.Item
-            name="stakeholders"
-            label="Stakeholders"
+            name={["stakeholders", "CONTRACT_MANAGER"]}
+            label={
+              <Space>
+                Contract Manager
+                <Text type="danger">*</Text>
+              </Space>
+            }
             rules={[{ required: true }]}
           >
-            <Select {...stakeholderSelectProps} mode="multiple" />
+            <Select
+              {...contractManagerSelectProps}
+              mode="multiple"
+              showSearch
+              filterOption={(input, option) => {
+                const label = option?.label?.toString() || '';
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name={["stakeholders", "CONTRACT_OWNER"]}
+            label={
+              <Space>
+                Contract Owner
+                <Text type="danger">*</Text>
+              </Space>
+            }
+            rules={[{ required: true }]}
+          >
+            <Select
+              {...contractOwnerSelectProps}
+              mode="multiple"
+              showSearch
+              filterOption={(input, option) => {
+                const label = option?.label?.toString() || '';
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name={["stakeholders", "LEGAL_TEAM"]}
+            label="Legal Team"
+          >
+            <Select
+              {...legalTeamSelectProps}
+              mode="multiple"
+              showSearch
+              filterOption={(input, option) => {
+                const label = option?.label?.toString() || '';
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name={["stakeholders", "CATEGORY_SOURCING_MANAGER"]}
+            label="Category Sourcing Manager"
+          >
+            <Select
+              {...categorySourcingManagerSelectProps}
+              mode="multiple"
+              showSearch
+              filterOption={(input, option) => {
+                const label = option?.label?.toString() || '';
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
           </Form.Item>
         </Form.Item>
       </Form>

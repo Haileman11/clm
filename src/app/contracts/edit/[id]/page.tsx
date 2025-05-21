@@ -1,7 +1,16 @@
 "use client";
 
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, DatePicker, InputNumber, Tooltip } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  InputNumber,
+  Tooltip,
+  Space,
+  Typography,
+} from "antd";
 import {
   CalendarOutlined,
   DollarOutlined,
@@ -19,20 +28,84 @@ import {
 } from "@lib/types";
 import dayjs from "dayjs";
 import { useState } from "react";
+import { BaseRecord, HttpError } from "@refinedev/core";
+
+const { Text } = Typography;
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+}
+
+interface Stakeholder {
+  userId: string;
+  role: string;
+}
+
+interface ContractFormValues extends BaseRecord {
+  name: string;
+  clientLegalEntity: string;
+  termType: string;
+  contractType: string;
+  status: string;
+  effectiveDate: string;
+  expirationDate: string;
+  supplierService: string;
+  country: string;
+  currency: string;
+  totalValue: number;
+  vendorId: string;
+  stakeholders: {
+    [key: string]: string[];
+  };
+}
+
+const STAKEHOLDER_ROLES = [
+  { value: "CONTRACT_MANAGER", label: "Contract Manager", required: true },
+  { value: "CONTRACT_OWNER", label: "Contract Owner", required: true },
+  { value: "LEGAL_TEAM", label: "Legal Team", required: false },
+  {
+    value: "CATEGORY_SOURCING_MANAGER",
+    label: "Category Sourcing Manager",
+    required: false,
+  },
+] as const;
 
 export default function ContractEdit() {
-  const { formProps, saveButtonProps, queryResult } = useForm({
-    onMutationSuccess: (data, variables: any) => {
-      console.log(data, variables);
+  const { formProps, saveButtonProps, queryResult } = useForm<
+    ContractFormValues,
+    HttpError,
+    ContractFormValues
+  >({
+    resource: "contracts",
+    meta: {
+      method: "patch",
+    },
+    onMutationSuccess: (data, variables) => {
+      // Transform stakeholders to the unified format
       if (variables.stakeholders) {
-        variables.stakeholders = variables.stakeholders.map(
-          (stakeholder: any) => {
-            stakeholder.id;
+        const transformedStakeholders: Stakeholder[] = [];
+        for (const [role, userIds] of Object.entries(variables.stakeholders)) {
+          if (Array.isArray(userIds)) {
+            userIds.forEach((userId) => {
+              transformedStakeholders.push({
+                userId:
+                  typeof userId === "object" && userId !== null
+                    ? (userId as { id: string }).id
+                    : userId,
+                role,
+              });
+            });
           }
-        );
+        }
+        variables.stakeholders = transformedStakeholders as any;
       }
     },
   });
+
   const [selectedCurrency, setSelectedCurrency] = useState<string>("ETB");
   const { data, isLoading } = queryResult!;
   const record = data?.data;
@@ -42,17 +115,40 @@ export default function ContractEdit() {
     optionValue: "id",
   });
 
-  const { selectProps: stakeholderSelectProps } = useSelect({
+  const { selectProps: contractManagerSelectProps } = useSelect<User>({
     resource: "users",
-    optionLabel: "email",
+    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
     optionValue: "id",
-    filters: [
-      {
-        field: "id",
-        operator: "ne",
-        value: record?.id,
-      },
-    ],
+    meta: {
+      role: "CONTRACT_MANAGER",
+    },
+  });
+
+  const { selectProps: contractOwnerSelectProps } = useSelect<User>({
+    resource: "users",
+    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
+    optionValue: "id",
+    meta: {
+      role: "CONTRACT_OWNER",
+    },
+  });
+
+  const { selectProps: legalTeamSelectProps } = useSelect<User>({
+    resource: "users",
+    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
+    optionValue: "id",
+    meta: {
+      role: "LEGAL_TEAM",
+    },
+  });
+
+  const { selectProps: categorySourcingManagerSelectProps } = useSelect<User>({
+    resource: "users",
+    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
+    optionValue: "id",
+    meta: {
+      role: "CATEGORY_SOURCING_MANAGER",
+    },
   });
 
   const getCurrencySymbol = (currency: string) => {
@@ -259,12 +355,74 @@ export default function ContractEdit() {
           >
             <Select {...vendorSelectProps} />
           </Form.Item>
+
           <Form.Item
-            name="stakeholders"
-            label="Stakeholders"
+            name={["stakeholders", "CONTRACT_MANAGER"]}
+            label={
+              <Space>
+                Contract Manager
+                <Text type="danger">*</Text>
+              </Space>
+            }
             rules={[{ required: true }]}
           >
-            <Select {...stakeholderSelectProps} mode="multiple" />
+            <Select
+              {...contractManagerSelectProps}
+              mode="multiple"
+              showSearch
+              filterOption={(input, option) => {
+                const label = option?.label?.toString() || "";
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name={["stakeholders", "CONTRACT_OWNER"]}
+            label={
+              <Space>
+                Contract Owner
+                <Text type="danger">*</Text>
+              </Space>
+            }
+            rules={[{ required: true }]}
+          >
+            <Select
+              {...contractOwnerSelectProps}
+              mode="multiple"
+              showSearch
+              filterOption={(input, option) => {
+                const label = option?.label?.toString() || "";
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item name={["stakeholders", "LEGAL_TEAM"]} label="Legal Team">
+            <Select
+              {...legalTeamSelectProps}
+              mode="multiple"
+              showSearch
+              filterOption={(input, option) => {
+                const label = option?.label?.toString() || "";
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name={["stakeholders", "CATEGORY_SOURCING_MANAGER"]}
+            label="Category Sourcing Manager"
+          >
+            <Select
+              {...categorySourcingManagerSelectProps}
+              mode="multiple"
+              showSearch
+              filterOption={(input, option) => {
+                const label = option?.label?.toString() || "";
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
+            />
           </Form.Item>
         </Form.Item>
       </Form>

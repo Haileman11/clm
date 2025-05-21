@@ -32,14 +32,30 @@ async function initKeycloak() {
 }
 
 // GET /api/users - Get all users
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const users = await prisma.user.findMany();
+    const { searchParams } = new URL(request.url);
+    const role = searchParams.get("role");
+
+    const users = await prisma.user.findMany({
+      where: role ? {
+        role: role as any
+      } : undefined,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        department: true
+      }
+    });
+
     return NextResponse.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
