@@ -1,17 +1,27 @@
 export const CONTRACT_STATUS = [
-    "NEW",
-    "PRE_EXPIRY",
-    "EXPIRED",
-    "POST_EXPIRY",
-    "INACTIVE",
-    "TERMINATED",
-] as const;// Add local constant for roles
+  "NEW",
+  "REVIEWED",
+  "ACTIVE",
+  "EXPIRED",
+  "RENEWED",
+  "INACTIVE",
+  "TERMINATED",
+] as const; // Add local constant for roles
 export const USER_ROLES = [
   "CONTRACT_MANAGER",
   "CONTRACT_OWNER",
   "CATEGORY_SOURCING_MANAGER",
   "LEGAL_TEAM",
-
+] as const;
+export const STAKEHOLDER_ROLES = [
+  { value: "CONTRACT_MANAGER", label: "Contract Manager", required: true },
+  { value: "CONTRACT_OWNER", label: "Contract Owner", required: true },
+  { value: "LEGAL_TEAM", label: "Legal Team", required: false },
+  {
+    value: "CATEGORY_SOURCING_MANAGER",
+    label: "Category Sourcing Manager",
+    required: false,
+  },
 ] as const;
 
 export enum CONTRACT_TYPE {
@@ -24,13 +34,13 @@ export enum CONTRACT_TYPE {
   MASTER_AGREEMENT = "Master Agreement",
   SALES_ORDER = "Sales Order",
   SERVICE_AGREEMENT = "Service Agreement",
-  STATEMENT_OF_WORK = "Statement of Work"
+  STATEMENT_OF_WORK = "Statement of Work",
 }
 
 export enum TERM_TYPE {
   AUTO_RENEWAL = "Auto-Renewal",
   FIXED = "Fixed",
-  PERPETUAL = "Perpetual"
+  PERPETUAL = "Perpetual",
 }
 
 export enum SUPPLIER_SERVICE {
@@ -141,7 +151,7 @@ export enum SUPPLIER_SERVICE {
   UTILITIES = "UTILITIES",
   VAS_PLATFORMS = "VAS PLATFORMS AND SOLUTIONS",
   VENDOR = "VENDOR",
-  WASTE_MANAGEMENT = "WASTE MANAGEMENT SERVICES"
+  WASTE_MANAGEMENT = "WASTE MANAGEMENT SERVICES",
 }
 
 export enum CURRENCY {
@@ -150,7 +160,7 @@ export enum CURRENCY {
   KES = "KES",
   ZAR = "ZAR",
   GBP = "GBP",
-  USD = "USD"
+  USD = "USD",
 }
 
 export enum COUNTRY {
@@ -350,40 +360,60 @@ export enum COUNTRY {
   VIETNAM = "Vietnam",
   YEMEN = "Yemen",
   ZAMBIA = "Zambia",
-  ZIMBABWE = "Zimbabwe"
+  ZIMBABWE = "Zimbabwe",
 }
 
-export const CONTRACT_TYPE_OPTIONS = Object.entries(CONTRACT_TYPE).map(([key, value]) => ({
-  label: value,
-  value: value,
-  description: getContractTypeDescription(value),
-}));
+export const CONTRACT_TYPE_OPTIONS = Object.entries(CONTRACT_TYPE).map(
+  ([key, value]) => ({
+    label: value,
+    value: value,
+    description: getContractTypeDescription(value),
+  })
+);
 
-export const TERM_TYPE_OPTIONS = Object.entries(TERM_TYPE).map(([key, value]) => ({
-  label: value,
-  value: value,
-  description: getTermTypeDescription(value),
-}));
+export const TERM_TYPE_OPTIONS = Object.entries(TERM_TYPE).map(
+  ([key, value]) => ({
+    label: key,
+    value: value,
+    description: getTermTypeDescription(value),
+  })
+);
 
-export const SUPPLIER_SERVICE_OPTIONS = Object.entries(SUPPLIER_SERVICE).map(([key, value]) => ({
-  label: value,
-  value: value,
-  description: getSupplierServiceDescription(value),
-}));
+export const SUPPLIER_SERVICE_OPTIONS = Object.entries(SUPPLIER_SERVICE).map(
+  ([key, value]) => ({
+    label: key,
+    value: value,
+    description: getSupplierServiceDescription(value),
+  })
+);
 
-export const CURRENCY_OPTIONS = Object.entries(CURRENCY).map(([key, value]) => ({
-  label: value,
-  value: value,
-  description: getCurrencyDescription(value)
-}));
+export const CURRENCY_OPTIONS = Object.entries(CURRENCY).map(
+  ([key, value]) => ({
+    label: value,
+    value: value,
+    description: getCurrencyDescription(value),
+  })
+);
 
 export const COUNTRY_OPTIONS = [
-  { value: "AF", label: "Afghanistan", description: "Islamic Republic of Afghanistan" },
+  {
+    value: "AF",
+    label: "Afghanistan",
+    description: "Islamic Republic of Afghanistan",
+  },
   { value: "AL", label: "Albania", description: "Republic of Albania" },
-  { value: "DZ", label: "Algeria", description: "People's Democratic Republic of Algeria" },
+  {
+    value: "DZ",
+    label: "Algeria",
+    description: "People's Democratic Republic of Algeria",
+  },
   { value: "AD", label: "Andorra", description: "Principality of Andorra" },
   { value: "AO", label: "Angola", description: "Republic of Angola" },
-  { value: "AG", label: "Antigua and Barbuda", description: "Antigua and Barbuda" },
+  {
+    value: "AG",
+    label: "Antigua and Barbuda",
+    description: "Antigua and Barbuda",
+  },
   { value: "AR", label: "Argentina", description: "Argentine Republic" },
   { value: "AM", label: "Armenia", description: "Republic of Armenia" },
   { value: "AU", label: "Australia", description: "Commonwealth of Australia" },
@@ -391,17 +421,33 @@ export const COUNTRY_OPTIONS = [
   { value: "AZ", label: "Azerbaijan", description: "Republic of Azerbaijan" },
   { value: "BS", label: "Bahamas", description: "Commonwealth of The Bahamas" },
   { value: "BH", label: "Bahrain", description: "Kingdom of Bahrain" },
-  { value: "BD", label: "Bangladesh", description: "People's Republic of Bangladesh" },
+  {
+    value: "BD",
+    label: "Bangladesh",
+    description: "People's Republic of Bangladesh",
+  },
   { value: "BB", label: "Barbados", description: "Barbados" },
   { value: "BY", label: "Belarus", description: "Republic of Belarus" },
   { value: "BE", label: "Belgium", description: "Kingdom of Belgium" },
   { value: "BZ", label: "Belize", description: "Belize" },
   { value: "BJ", label: "Benin", description: "Republic of Benin" },
   { value: "BT", label: "Bhutan", description: "Kingdom of Bhutan" },
-  { value: "BO", label: "Bolivia", description: "Plurinational State of Bolivia" },
-  { value: "BA", label: "Bosnia and Herzegovina", description: "Bosnia and Herzegovina" },
+  {
+    value: "BO",
+    label: "Bolivia",
+    description: "Plurinational State of Bolivia",
+  },
+  {
+    value: "BA",
+    label: "Bosnia and Herzegovina",
+    description: "Bosnia and Herzegovina",
+  },
   { value: "BW", label: "Botswana", description: "Republic of Botswana" },
-  { value: "BR", label: "Brazil", description: "Federative Republic of Brazil" },
+  {
+    value: "BR",
+    label: "Brazil",
+    description: "Federative Republic of Brazil",
+  },
   { value: "BN", label: "Brunei", description: "Brunei Darussalam" },
   { value: "BG", label: "Bulgaria", description: "Republic of Bulgaria" },
   { value: "BF", label: "Burkina Faso", description: "Burkina Faso" },
@@ -410,16 +456,28 @@ export const COUNTRY_OPTIONS = [
   { value: "CM", label: "Cameroon", description: "Republic of Cameroon" },
   { value: "CA", label: "Canada", description: "Canada" },
   { value: "CV", label: "Cape Verde", description: "Republic of Cabo Verde" },
-  { value: "CF", label: "Central African Republic", description: "Central African Republic" },
+  {
+    value: "CF",
+    label: "Central African Republic",
+    description: "Central African Republic",
+  },
   { value: "TD", label: "Chad", description: "Republic of Chad" },
   { value: "CL", label: "Chile", description: "Republic of Chile" },
   { value: "CN", label: "China", description: "People's Republic of China" },
   { value: "CO", label: "Colombia", description: "Republic of Colombia" },
   { value: "KM", label: "Comoros", description: "Union of the Comoros" },
   { value: "CG", label: "Congo", description: "Republic of the Congo" },
-  { value: "CD", label: "Democratic Republic of the Congo", description: "Democratic Republic of the Congo" },
+  {
+    value: "CD",
+    label: "Democratic Republic of the Congo",
+    description: "Democratic Republic of the Congo",
+  },
   { value: "CR", label: "Costa Rica", description: "Republic of Costa Rica" },
-  { value: "CI", label: "Ivory Coast", description: "Republic of Côte d'Ivoire" },
+  {
+    value: "CI",
+    label: "Ivory Coast",
+    description: "Republic of Côte d'Ivoire",
+  },
   { value: "HR", label: "Croatia", description: "Republic of Croatia" },
   { value: "CU", label: "Cuba", description: "Republic of Cuba" },
   { value: "CY", label: "Cyprus", description: "Republic of Cyprus" },
@@ -427,14 +485,26 @@ export const COUNTRY_OPTIONS = [
   { value: "DK", label: "Denmark", description: "Kingdom of Denmark" },
   { value: "DJ", label: "Djibouti", description: "Republic of Djibouti" },
   { value: "DM", label: "Dominica", description: "Commonwealth of Dominica" },
-  { value: "DO", label: "Dominican Republic", description: "Dominican Republic" },
+  {
+    value: "DO",
+    label: "Dominican Republic",
+    description: "Dominican Republic",
+  },
   { value: "EC", label: "Ecuador", description: "Republic of Ecuador" },
   { value: "EG", label: "Egypt", description: "Arab Republic of Egypt" },
   { value: "SV", label: "El Salvador", description: "Republic of El Salvador" },
-  { value: "GQ", label: "Equatorial Guinea", description: "Republic of Equatorial Guinea" },
+  {
+    value: "GQ",
+    label: "Equatorial Guinea",
+    description: "Republic of Equatorial Guinea",
+  },
   { value: "ER", label: "Eritrea", description: "State of Eritrea" },
   { value: "EE", label: "Estonia", description: "Republic of Estonia" },
-  { value: "ET", label: "Ethiopia", description: "Federal Democratic Republic of Ethiopia" },
+  {
+    value: "ET",
+    label: "Ethiopia",
+    description: "Federal Democratic Republic of Ethiopia",
+  },
   { value: "FJ", label: "Fiji", description: "Republic of Fiji" },
   { value: "FI", label: "Finland", description: "Republic of Finland" },
   { value: "FR", label: "France", description: "French Republic" },
@@ -447,11 +517,23 @@ export const COUNTRY_OPTIONS = [
   { value: "GD", label: "Grenada", description: "Grenada" },
   { value: "GT", label: "Guatemala", description: "Republic of Guatemala" },
   { value: "GN", label: "Guinea", description: "Republic of Guinea" },
-  { value: "GW", label: "Guinea-Bissau", description: "Republic of Guinea-Bissau" },
-  { value: "GY", label: "Guyana", description: "Co-operative Republic of Guyana" },
+  {
+    value: "GW",
+    label: "Guinea-Bissau",
+    description: "Republic of Guinea-Bissau",
+  },
+  {
+    value: "GY",
+    label: "Guyana",
+    description: "Co-operative Republic of Guyana",
+  },
   { value: "HT", label: "Haiti", description: "Republic of Haiti" },
   { value: "HN", label: "Honduras", description: "Republic of Honduras" },
-  { value: "HK", label: "Hong Kong", description: "Hong Kong Special Administrative Region of China" },
+  {
+    value: "HK",
+    label: "Hong Kong",
+    description: "Hong Kong Special Administrative Region of China",
+  },
   { value: "HU", label: "Hungary", description: "Hungary" },
   { value: "IS", label: "Iceland", description: "Iceland" },
   { value: "IN", label: "India", description: "Republic of India" },
@@ -467,83 +549,171 @@ export const COUNTRY_OPTIONS = [
   { value: "KZ", label: "Kazakhstan", description: "Republic of Kazakhstan" },
   { value: "KE", label: "Kenya", description: "Republic of Kenya" },
   { value: "KI", label: "Kiribati", description: "Republic of Kiribati" },
-  { value: "KP", label: "North Korea", description: "Democratic People's Republic of Korea" },
+  {
+    value: "KP",
+    label: "North Korea",
+    description: "Democratic People's Republic of Korea",
+  },
   { value: "KR", label: "South Korea", description: "Republic of Korea" },
   { value: "KW", label: "Kuwait", description: "State of Kuwait" },
   { value: "KG", label: "Kyrgyzstan", description: "Kyrgyz Republic" },
-  { value: "LA", label: "Laos", description: "Lao People's Democratic Republic" },
+  {
+    value: "LA",
+    label: "Laos",
+    description: "Lao People's Democratic Republic",
+  },
   { value: "LV", label: "Latvia", description: "Republic of Latvia" },
   { value: "LB", label: "Lebanon", description: "Lebanese Republic" },
   { value: "LS", label: "Lesotho", description: "Kingdom of Lesotho" },
   { value: "LR", label: "Liberia", description: "Republic of Liberia" },
   { value: "LY", label: "Libya", description: "State of Libya" },
-  { value: "LI", label: "Liechtenstein", description: "Principality of Liechtenstein" },
+  {
+    value: "LI",
+    label: "Liechtenstein",
+    description: "Principality of Liechtenstein",
+  },
   { value: "LT", label: "Lithuania", description: "Republic of Lithuania" },
-  { value: "LU", label: "Luxembourg", description: "Grand Duchy of Luxembourg" },
-  { value: "MO", label: "Macau", description: "Macao Special Administrative Region of China" },
-  { value: "MK", label: "North Macedonia", description: "Republic of North Macedonia" },
+  {
+    value: "LU",
+    label: "Luxembourg",
+    description: "Grand Duchy of Luxembourg",
+  },
+  {
+    value: "MO",
+    label: "Macau",
+    description: "Macao Special Administrative Region of China",
+  },
+  {
+    value: "MK",
+    label: "North Macedonia",
+    description: "Republic of North Macedonia",
+  },
   { value: "MG", label: "Madagascar", description: "Republic of Madagascar" },
   { value: "MW", label: "Malawi", description: "Republic of Malawi" },
   { value: "MY", label: "Malaysia", description: "Malaysia" },
   { value: "MV", label: "Maldives", description: "Republic of Maldives" },
   { value: "ML", label: "Mali", description: "Republic of Mali" },
   { value: "MT", label: "Malta", description: "Republic of Malta" },
-  { value: "MH", label: "Marshall Islands", description: "Republic of the Marshall Islands" },
-  { value: "MR", label: "Mauritania", description: "Islamic Republic of Mauritania" },
+  {
+    value: "MH",
+    label: "Marshall Islands",
+    description: "Republic of the Marshall Islands",
+  },
+  {
+    value: "MR",
+    label: "Mauritania",
+    description: "Islamic Republic of Mauritania",
+  },
   { value: "MU", label: "Mauritius", description: "Republic of Mauritius" },
   { value: "MX", label: "Mexico", description: "United Mexican States" },
-  { value: "FM", label: "Micronesia", description: "Federated States of Micronesia" },
+  {
+    value: "FM",
+    label: "Micronesia",
+    description: "Federated States of Micronesia",
+  },
   { value: "MD", label: "Moldova", description: "Republic of Moldova" },
   { value: "MC", label: "Monaco", description: "Principality of Monaco" },
   { value: "MN", label: "Mongolia", description: "Mongolia" },
   { value: "ME", label: "Montenegro", description: "Montenegro" },
   { value: "MA", label: "Morocco", description: "Kingdom of Morocco" },
   { value: "MZ", label: "Mozambique", description: "Republic of Mozambique" },
-  { value: "MM", label: "Myanmar", description: "Republic of the Union of Myanmar" },
+  {
+    value: "MM",
+    label: "Myanmar",
+    description: "Republic of the Union of Myanmar",
+  },
   { value: "NA", label: "Namibia", description: "Republic of Namibia" },
   { value: "NR", label: "Nauru", description: "Republic of Nauru" },
-  { value: "NP", label: "Nepal", description: "Federal Democratic Republic of Nepal" },
-  { value: "NL", label: "Netherlands", description: "Kingdom of the Netherlands" },
+  {
+    value: "NP",
+    label: "Nepal",
+    description: "Federal Democratic Republic of Nepal",
+  },
+  {
+    value: "NL",
+    label: "Netherlands",
+    description: "Kingdom of the Netherlands",
+  },
   { value: "NZ", label: "New Zealand", description: "New Zealand" },
   { value: "NI", label: "Nicaragua", description: "Republic of Nicaragua" },
   { value: "NE", label: "Niger", description: "Republic of Niger" },
   { value: "NG", label: "Nigeria", description: "Federal Republic of Nigeria" },
   { value: "NO", label: "Norway", description: "Kingdom of Norway" },
   { value: "OM", label: "Oman", description: "Sultanate of Oman" },
-  { value: "PK", label: "Pakistan", description: "Islamic Republic of Pakistan" },
+  {
+    value: "PK",
+    label: "Pakistan",
+    description: "Islamic Republic of Pakistan",
+  },
   { value: "PW", label: "Palau", description: "Republic of Palau" },
   { value: "PS", label: "Palestine", description: "State of Palestine" },
   { value: "PA", label: "Panama", description: "Republic of Panama" },
-  { value: "PG", label: "Papua New Guinea", description: "Independent State of Papua New Guinea" },
+  {
+    value: "PG",
+    label: "Papua New Guinea",
+    description: "Independent State of Papua New Guinea",
+  },
   { value: "PY", label: "Paraguay", description: "Republic of Paraguay" },
   { value: "PE", label: "Peru", description: "Republic of Peru" },
-  { value: "PH", label: "Philippines", description: "Republic of the Philippines" },
+  {
+    value: "PH",
+    label: "Philippines",
+    description: "Republic of the Philippines",
+  },
   { value: "PL", label: "Poland", description: "Republic of Poland" },
   { value: "PT", label: "Portugal", description: "Portuguese Republic" },
   { value: "QA", label: "Qatar", description: "State of Qatar" },
   { value: "RO", label: "Romania", description: "Romania" },
   { value: "RU", label: "Russia", description: "Russian Federation" },
   { value: "RW", label: "Rwanda", description: "Republic of Rwanda" },
-  { value: "KN", label: "Saint Kitts and Nevis", description: "Federation of Saint Christopher and Nevis" },
+  {
+    value: "KN",
+    label: "Saint Kitts and Nevis",
+    description: "Federation of Saint Christopher and Nevis",
+  },
   { value: "LC", label: "Saint Lucia", description: "Saint Lucia" },
-  { value: "VC", label: "Saint Vincent and the Grenadines", description: "Saint Vincent and the Grenadines" },
+  {
+    value: "VC",
+    label: "Saint Vincent and the Grenadines",
+    description: "Saint Vincent and the Grenadines",
+  },
   { value: "WS", label: "Samoa", description: "Independent State of Samoa" },
   { value: "SM", label: "San Marino", description: "Republic of San Marino" },
-  { value: "ST", label: "Sao Tome and Principe", description: "Democratic Republic of São Tomé and Príncipe" },
-  { value: "SA", label: "Saudi Arabia", description: "Kingdom of Saudi Arabia" },
+  {
+    value: "ST",
+    label: "Sao Tome and Principe",
+    description: "Democratic Republic of São Tomé and Príncipe",
+  },
+  {
+    value: "SA",
+    label: "Saudi Arabia",
+    description: "Kingdom of Saudi Arabia",
+  },
   { value: "SN", label: "Senegal", description: "Republic of Senegal" },
   { value: "RS", label: "Serbia", description: "Republic of Serbia" },
   { value: "SC", label: "Seychelles", description: "Republic of Seychelles" },
-  { value: "SL", label: "Sierra Leone", description: "Republic of Sierra Leone" },
+  {
+    value: "SL",
+    label: "Sierra Leone",
+    description: "Republic of Sierra Leone",
+  },
   { value: "SG", label: "Singapore", description: "Republic of Singapore" },
   { value: "SK", label: "Slovakia", description: "Slovak Republic" },
   { value: "SI", label: "Slovenia", description: "Republic of Slovenia" },
   { value: "SB", label: "Solomon Islands", description: "Solomon Islands" },
   { value: "SO", label: "Somalia", description: "Federal Republic of Somalia" },
-  { value: "ZA", label: "South Africa", description: "Republic of South Africa" },
+  {
+    value: "ZA",
+    label: "South Africa",
+    description: "Republic of South Africa",
+  },
   { value: "SS", label: "South Sudan", description: "Republic of South Sudan" },
   { value: "ES", label: "Spain", description: "Kingdom of Spain" },
-  { value: "LK", label: "Sri Lanka", description: "Democratic Socialist Republic of Sri Lanka" },
+  {
+    value: "LK",
+    label: "Sri Lanka",
+    description: "Democratic Socialist Republic of Sri Lanka",
+  },
   { value: "SD", label: "Sudan", description: "Republic of the Sudan" },
   { value: "SR", label: "Suriname", description: "Republic of Suriname" },
   { value: "SE", label: "Sweden", description: "Kingdom of Sweden" },
@@ -551,53 +721,100 @@ export const COUNTRY_OPTIONS = [
   { value: "SY", label: "Syria", description: "Syrian Arab Republic" },
   { value: "TW", label: "Taiwan", description: "Republic of China (Taiwan)" },
   { value: "TJ", label: "Tajikistan", description: "Republic of Tajikistan" },
-  { value: "TZ", label: "Tanzania", description: "United Republic of Tanzania" },
+  {
+    value: "TZ",
+    label: "Tanzania",
+    description: "United Republic of Tanzania",
+  },
   { value: "TH", label: "Thailand", description: "Kingdom of Thailand" },
-  { value: "TL", label: "East Timor", description: "Democratic Republic of Timor-Leste" },
+  {
+    value: "TL",
+    label: "East Timor",
+    description: "Democratic Republic of Timor-Leste",
+  },
   { value: "TG", label: "Togo", description: "Togolese Republic" },
   { value: "TO", label: "Tonga", description: "Kingdom of Tonga" },
-  { value: "TT", label: "Trinidad and Tobago", description: "Republic of Trinidad and Tobago" },
+  {
+    value: "TT",
+    label: "Trinidad and Tobago",
+    description: "Republic of Trinidad and Tobago",
+  },
   { value: "TN", label: "Tunisia", description: "Republic of Tunisia" },
   { value: "TR", label: "Turkey", description: "Republic of Turkey" },
   { value: "TM", label: "Turkmenistan", description: "Turkmenistan" },
   { value: "TV", label: "Tuvalu", description: "Tuvalu" },
   { value: "UG", label: "Uganda", description: "Republic of Uganda" },
   { value: "UA", label: "Ukraine", description: "Ukraine" },
-  { value: "AE", label: "United Arab Emirates", description: "United Arab Emirates" },
-  { value: "GB", label: "United Kingdom", description: "United Kingdom of Great Britain and Northern Ireland" },
-  { value: "US", label: "United States", description: "United States of America" },
-  { value: "UY", label: "Uruguay", description: "Oriental Republic of Uruguay" },
+  {
+    value: "AE",
+    label: "United Arab Emirates",
+    description: "United Arab Emirates",
+  },
+  {
+    value: "GB",
+    label: "United Kingdom",
+    description: "United Kingdom of Great Britain and Northern Ireland",
+  },
+  {
+    value: "US",
+    label: "United States",
+    description: "United States of America",
+  },
+  {
+    value: "UY",
+    label: "Uruguay",
+    description: "Oriental Republic of Uruguay",
+  },
   { value: "UZ", label: "Uzbekistan", description: "Republic of Uzbekistan" },
   { value: "VU", label: "Vanuatu", description: "Republic of Vanuatu" },
   { value: "VA", label: "Vatican City", description: "Vatican City State" },
-  { value: "VE", label: "Venezuela", description: "Bolivarian Republic of Venezuela" },
-  { value: "VN", label: "Vietnam", description: "Socialist Republic of Vietnam" },
+  {
+    value: "VE",
+    label: "Venezuela",
+    description: "Bolivarian Republic of Venezuela",
+  },
+  {
+    value: "VN",
+    label: "Vietnam",
+    description: "Socialist Republic of Vietnam",
+  },
   { value: "YE", label: "Yemen", description: "Republic of Yemen" },
   { value: "ZM", label: "Zambia", description: "Republic of Zambia" },
-  { value: "ZW", label: "Zimbabwe", description: "Republic of Zimbabwe" }
+  { value: "ZW", label: "Zimbabwe", description: "Republic of Zimbabwe" },
 ];
 
 function getContractTypeDescription(type: CONTRACT_TYPE): string {
   const descriptions: Record<CONTRACT_TYPE, string> = {
-    [CONTRACT_TYPE.ADDENDUM]: "Document that adds or modifies terms of an existing contract",
-    [CONTRACT_TYPE.ATTACHMENT]: "Supplementary document attached to the main contract",
-    [CONTRACT_TYPE.AMENDMENT]: "Formal change to the terms of an existing contract",
-    [CONTRACT_TYPE.CHANGE_REQUEST]: "Proposal to modify the scope or terms of a contract",
-    [CONTRACT_TYPE.EXTENSION_RENEWAL]: "Extension of an existing contract's term",
-    [CONTRACT_TYPE.LOCAL_AGREEMENT]: "Agreement specific to a particular location or jurisdiction",
-    [CONTRACT_TYPE.MASTER_AGREEMENT]: "Framework agreement that sets terms for future transactions",
-    [CONTRACT_TYPE.SALES_ORDER]: "Document confirming the sale of goods or services",
-    [CONTRACT_TYPE.SERVICE_AGREEMENT]: "Agreement for the provision of services",
-    [CONTRACT_TYPE.STATEMENT_OF_WORK]: "Detailed description of work to be performed"
+    [CONTRACT_TYPE.ADDENDUM]:
+      "Document that adds or modifies terms of an existing contract",
+    [CONTRACT_TYPE.ATTACHMENT]:
+      "Supplementary document attached to the main contract",
+    [CONTRACT_TYPE.AMENDMENT]:
+      "Formal change to the terms of an existing contract",
+    [CONTRACT_TYPE.CHANGE_REQUEST]:
+      "Proposal to modify the scope or terms of a contract",
+    [CONTRACT_TYPE.EXTENSION_RENEWAL]:
+      "Extension of an existing contract's term",
+    [CONTRACT_TYPE.LOCAL_AGREEMENT]:
+      "Agreement specific to a particular location or jurisdiction",
+    [CONTRACT_TYPE.MASTER_AGREEMENT]:
+      "Framework agreement that sets terms for future transactions",
+    [CONTRACT_TYPE.SALES_ORDER]:
+      "Document confirming the sale of goods or services",
+    [CONTRACT_TYPE.SERVICE_AGREEMENT]:
+      "Agreement for the provision of services",
+    [CONTRACT_TYPE.STATEMENT_OF_WORK]:
+      "Detailed description of work to be performed",
   };
   return descriptions[type];
 }
 
 function getTermTypeDescription(type: TERM_TYPE): string {
   const descriptions: Record<TERM_TYPE, string> = {
-    [TERM_TYPE.AUTO_RENEWAL]: "Contract automatically renews for a specified period unless notice is given",
+    [TERM_TYPE.AUTO_RENEWAL]:
+      "Contract automatically renews for a specified period unless notice is given",
     [TERM_TYPE.FIXED]: "Contract has a fixed start and end date",
-    [TERM_TYPE.PERPETUAL]: "No end date; continues indefinitely"
+    [TERM_TYPE.PERPETUAL]: "No end date; continues indefinitely",
   };
   return descriptions[type];
 }
@@ -609,13 +826,16 @@ function getSupplierServiceDescription(service: SUPPLIER_SERVICE): string {
     [SUPPLIER_SERVICE.ASSET_TRACKING_SERVICES]: "Asset tracking services",
     [SUPPLIER_SERVICE.AUDIO_VISUAL_SERVICES]: "Audio and visual services",
     [SUPPLIER_SERVICE.AUDIT_SERVICES]: "Audit services",
-    [SUPPLIER_SERVICE.BROADBAND_FIBER_WIMAX]: "Broadband fiber Wimax installation",
+    [SUPPLIER_SERVICE.BROADBAND_FIBER_WIMAX]:
+      "Broadband fiber Wimax installation",
     [SUPPLIER_SERVICE.BTS_CONSTRUCTION]: "BTS construction/civil works",
     [SUPPLIER_SERVICE.BTS_LANDLORDS]: "BTS landlords",
     [SUPPLIER_SERVICE.BUILDING_CONSTRUCTION]: "Building construction services",
     [SUPPLIER_SERVICE.BUSINESS_CONSULTANCY]: "Business consultancy services",
-    [SUPPLIER_SERVICE.CATERING_HOSPITALITY]: "Catering and hospitality services",
-    [SUPPLIER_SERVICE.CLEANING_LANDSCAPING]: "Cleaning and landscaping services",
+    [SUPPLIER_SERVICE.CATERING_HOSPITALITY]:
+      "Catering and hospitality services",
+    [SUPPLIER_SERVICE.CLEANING_LANDSCAPING]:
+      "Cleaning and landscaping services",
     [SUPPLIER_SERVICE.CLEANING_SERVICES]: "Cleaning services",
     [SUPPLIER_SERVICE.COMPANY]: "Company services",
     [SUPPLIER_SERVICE.COMPUTER_CONSUMABLES]: "Computer consumables",
@@ -627,7 +847,8 @@ function getSupplierServiceDescription(service: SUPPLIER_SERVICE): string {
     [SUPPLIER_SERVICE.EDUCATION]: "Education services",
     [SUPPLIER_SERVICE.ELECTRICAL_FITTINGS]: "Electrical fittings",
     [SUPPLIER_SERVICE.EVENT_MANAGEMENT]: "Event management services",
-    [SUPPLIER_SERVICE.FACILITIES_MAINTENANCE]: "Facilities maintenance & repair",
+    [SUPPLIER_SERVICE.FACILITIES_MAINTENANCE]:
+      "Facilities maintenance & repair",
     [SUPPLIER_SERVICE.FLEET_MAINTENANCE]: "Fleet maintenance & repairs",
     [SUPPLIER_SERVICE.FLEET_MANAGEMENT]: "Fleet management services",
     [SUPPLIER_SERVICE.FLEET_FUEL]: "Fleet management-fuel",
@@ -711,7 +932,7 @@ function getSupplierServiceDescription(service: SUPPLIER_SERVICE): string {
     [SUPPLIER_SERVICE.UTILITIES]: "Utilities",
     [SUPPLIER_SERVICE.VAS_PLATFORMS]: "VAS platforms and solutions",
     [SUPPLIER_SERVICE.VENDOR]: "Vendor",
-    [SUPPLIER_SERVICE.WASTE_MANAGEMENT]: "Waste management services"
+    [SUPPLIER_SERVICE.WASTE_MANAGEMENT]: "Waste management services",
   };
   return descriptions[service];
 }
@@ -723,7 +944,7 @@ function getCurrencyDescription(currency: CURRENCY): string {
     [CURRENCY.KES]: "Kenyan Shilling",
     [CURRENCY.ZAR]: "South African Rand",
     [CURRENCY.GBP]: "British Pound Sterling",
-    [CURRENCY.USD]: "United States Dollar"
+    [CURRENCY.USD]: "United States Dollar",
   };
   return descriptions[currency];
 }
@@ -916,7 +1137,8 @@ function getCountryDescription(country: COUNTRY): string {
     [COUNTRY.UGANDA]: "Republic of Uganda",
     [COUNTRY.UKRAINE]: "Ukraine",
     [COUNTRY.UNITED_ARAB_EMIRATES]: "United Arab Emirates",
-    [COUNTRY.UNITED_KINGDOM]: "United Kingdom of Great Britain and Northern Ireland",
+    [COUNTRY.UNITED_KINGDOM]:
+      "United Kingdom of Great Britain and Northern Ireland",
     [COUNTRY.UNITED_STATES]: "United States of America",
     [COUNTRY.URUGUAY]: "Oriental Republic of Uruguay",
     [COUNTRY.UZBEKISTAN]: "Republic of Uzbekistan",
@@ -926,8 +1148,7 @@ function getCountryDescription(country: COUNTRY): string {
     [COUNTRY.VIETNAM]: "Socialist Republic of Vietnam",
     [COUNTRY.YEMEN]: "Republic of Yemen",
     [COUNTRY.ZAMBIA]: "Republic of Zambia",
-    [COUNTRY.ZIMBABWE]: "Republic of Zimbabwe"
+    [COUNTRY.ZIMBABWE]: "Republic of Zimbabwe",
   };
   return descriptions[country];
 }
-

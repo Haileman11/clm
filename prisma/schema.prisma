@@ -44,7 +44,7 @@ enum VendorStatus {
 model Vendor {
   id                String       @id @default(cuid())
   name              String
-  vendorNumber      String      @unique
+  vendorNumber      String       @unique
   supplierService   String
   vatRegistrationId String
   address           String
@@ -71,7 +71,7 @@ model Contract {
   country           String
   currency          String
   totalValue        Float
-  status            ContractStatus
+  status            ContractStatus @default(NEW)
   vendor            Vendor         @relation(fields: [vendorId], references: [id])
   vendorId          String
   stakeholders      User[]
@@ -81,9 +81,10 @@ model Contract {
 
 enum ContractStatus {
   NEW
-  PRE_EXPIRY
+  REVIEWED
+  ACTIVE
   EXPIRED
-  POST_EXPIRY
+  RENEWED
   INACTIVE
   TERMINATED
 }

@@ -25,12 +25,11 @@ import {
   SUPPLIER_SERVICE_OPTIONS,
   CURRENCY_OPTIONS,
   COUNTRY_OPTIONS,
+  STAKEHOLDER_ROLES,
 } from "@lib/types";
 import dayjs from "dayjs";
 import { useState } from "react";
-import { BaseRecord, HttpError } from "@refinedev/core";
-
-const { Text } = Typography;
+import { BaseRecord, HttpError, useList } from "@refinedev/core";
 
 interface User {
   id: string;
@@ -40,70 +39,9 @@ interface User {
   role: string;
 }
 
-interface Stakeholder {
-  userId: string;
-  role: string;
-}
-
-interface ContractFormValues extends BaseRecord {
-  name: string;
-  clientLegalEntity: string;
-  termType: string;
-  contractType: string;
-  status: string;
-  effectiveDate: string;
-  expirationDate: string;
-  supplierService: string;
-  country: string;
-  currency: string;
-  totalValue: number;
-  vendorId: string;
-  stakeholders: {
-    [key: string]: string[];
-  };
-}
-
-const STAKEHOLDER_ROLES = [
-  { value: "CONTRACT_MANAGER", label: "Contract Manager", required: true },
-  { value: "CONTRACT_OWNER", label: "Contract Owner", required: true },
-  { value: "LEGAL_TEAM", label: "Legal Team", required: false },
-  {
-    value: "CATEGORY_SOURCING_MANAGER",
-    label: "Category Sourcing Manager",
-    required: false,
-  },
-] as const;
-
 export default function ContractEdit() {
-  const { formProps, saveButtonProps, queryResult } = useForm<
-    ContractFormValues,
-    HttpError,
-    ContractFormValues
-  >({
+  const { formProps, saveButtonProps, queryResult } = useForm({
     resource: "contracts",
-    meta: {
-      method: "patch",
-    },
-    onMutationSuccess: (data, variables) => {
-      // Transform stakeholders to the unified format
-      if (variables.stakeholders) {
-        const transformedStakeholders: Stakeholder[] = [];
-        for (const [role, userIds] of Object.entries(variables.stakeholders)) {
-          if (Array.isArray(userIds)) {
-            userIds.forEach((userId) => {
-              transformedStakeholders.push({
-                userId:
-                  typeof userId === "object" && userId !== null
-                    ? (userId as { id: string }).id
-                    : userId,
-                role,
-              });
-            });
-          }
-        }
-        variables.stakeholders = transformedStakeholders as any;
-      }
-    },
   });
 
   const [selectedCurrency, setSelectedCurrency] = useState<string>("ETB");
@@ -115,56 +53,53 @@ export default function ContractEdit() {
     optionValue: "id",
   });
 
-  const { selectProps: contractManagerSelectProps } = useSelect<User>({
+  const { data: usersData, isLoading: isUsersLoading } = useList<User>({
     resource: "users",
-    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
-    optionValue: "id",
-    meta: {
-      role: "CONTRACT_MANAGER",
-    },
+    pagination: { mode: "off" }, // Get all users
   });
 
-  const { selectProps: contractOwnerSelectProps } = useSelect<User>({
-    resource: "users",
-    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
-    optionValue: "id",
-    meta: {
-      role: "CONTRACT_OWNER",
-    },
-  });
+  const users = usersData?.data ?? [];
 
-  const { selectProps: legalTeamSelectProps } = useSelect<User>({
-    resource: "users",
-    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
-    optionValue: "id",
-    meta: {
-      role: "LEGAL_TEAM",
-    },
-  });
-
-  const { selectProps: categorySourcingManagerSelectProps } = useSelect<User>({
-    resource: "users",
-    optionLabel: (item) => `${item.firstName} ${item.lastName} (${item.email})`,
-    optionValue: "id",
-    meta: {
-      role: "CATEGORY_SOURCING_MANAGER",
-    },
-  });
-
-  const getCurrencySymbol = (currency: string) => {
-    switch (currency) {
-      case "ETB":
-        return "Br ";
-      case "USD":
-        return "$ ";
-      default:
-        return "";
-    }
+  const buildSelectProps = (role: string) => {
+    const filtered = users.filter((user) => user.role === role);
+    return {
+      options: filtered.map((user) => ({
+        label: `${user.firstName} ${user.lastName} (${user.email})`,
+        value: user.id,
+      })),
+    };
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps} isLoading={isLoading}>
-      <Form {...formProps} layout="vertical">
+    <Edit
+      saveButtonProps={saveButtonProps}
+      isLoading={isLoading && isUsersLoading}
+    >
+      <Form
+        {...formProps}
+        layout="vertical"
+        initialValues={{
+          ...record,
+          stakeholders: {
+            CONTRACT_MANAGER:
+              record?.stakeholders
+                .filter((u: User) => u.role === "CONTRACT_MANAGER")
+                .map((u: User) => u.id) || [],
+            CONTRACT_OWNER:
+              record?.stakeholders
+                .filter((u: User) => u.role === "CONTRACT_OWNER")
+                .map((u: User) => u.id) || [],
+            LEGAL_TEAM:
+              record?.stakeholders
+                .filter((u: User) => u.role === "LEGAL_TEAM")
+                .map((u: User) => u.id) || [],
+            CATEGORY_SOURCING_MANAGER:
+              record?.stakeholders
+                .filter((u: User) => u.role === "CATEGORY_SOURCING_MANAGER")
+                .map((u: User) => u.id) || [],
+          },
+        }}
+      >
         {/* Basic Information */}
         <Form.Item
           label={
@@ -266,7 +201,7 @@ export default function ContractEdit() {
             label="Supplier Service"
             rules={[{ required: true }]}
           >
-            <Select>
+            <Select showSearch>
               {SUPPLIER_SERVICE_OPTIONS.map((option) => (
                 <Select.Option key={option.value} value={option.value}>
                   <Tooltip title={option.description}>{option.label}</Tooltip>
@@ -329,10 +264,7 @@ export default function ContractEdit() {
             <InputNumber
               style={{ width: "100%" }}
               formatter={(value) =>
-                `${getCurrencySymbol(selectedCurrency)}${value}`.replace(
-                  /\B(?=(\d{3})+(?!\d))/g,
-                  ","
-                )
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
               parser={(value) => value!.replace(/\$\s?|Br\s?|(,*)/g, "")}
             />
@@ -353,77 +285,28 @@ export default function ContractEdit() {
             label="Vendor"
             rules={[{ required: true }]}
           >
-            <Select {...vendorSelectProps} />
+            <Select {...vendorSelectProps} showSearch />
           </Form.Item>
 
-          <Form.Item
-            name={["stakeholders", "CONTRACT_MANAGER"]}
-            label={
-              <Space>
-                Contract Manager
-                <Text type="danger">*</Text>
-              </Space>
-            }
-            rules={[{ required: true }]}
-          >
-            <Select
-              {...contractManagerSelectProps}
-              mode="multiple"
-              showSearch
-              filterOption={(input, option) => {
-                const label = option?.label?.toString() || "";
-                return label.toLowerCase().includes(input.toLowerCase());
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name={["stakeholders", "CONTRACT_OWNER"]}
-            label={
-              <Space>
-                Contract Owner
-                <Text type="danger">*</Text>
-              </Space>
-            }
-            rules={[{ required: true }]}
-          >
-            <Select
-              {...contractOwnerSelectProps}
-              mode="multiple"
-              showSearch
-              filterOption={(input, option) => {
-                const label = option?.label?.toString() || "";
-                return label.toLowerCase().includes(input.toLowerCase());
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item name={["stakeholders", "LEGAL_TEAM"]} label="Legal Team">
-            <Select
-              {...legalTeamSelectProps}
-              mode="multiple"
-              showSearch
-              filterOption={(input, option) => {
-                const label = option?.label?.toString() || "";
-                return label.toLowerCase().includes(input.toLowerCase());
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name={["stakeholders", "CATEGORY_SOURCING_MANAGER"]}
-            label="Category Sourcing Manager"
-          >
-            <Select
-              {...categorySourcingManagerSelectProps}
-              mode="multiple"
-              showSearch
-              filterOption={(input, option) => {
-                const label = option?.label?.toString() || "";
-                return label.toLowerCase().includes(input.toLowerCase());
-              }}
-            />
-          </Form.Item>
+          {STAKEHOLDER_ROLES.map(({ value, label, required }) => (
+            <Form.Item
+              key={value}
+              name={["stakeholders", value]}
+              label={label}
+              rules={required ? [{ required: true }] : []}
+            >
+              <Select
+                {...buildSelectProps(value)}
+                mode="multiple"
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label?.toString() ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+              />
+            </Form.Item>
+          ))}
         </Form.Item>
       </Form>
     </Edit>

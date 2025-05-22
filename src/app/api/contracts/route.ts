@@ -62,7 +62,9 @@ export async function POST(req: Request) {
     // Generate contract number
     const contractNumber = await generateContractNumber();
 
-    const connectStakeholders = data.stakeholders.map((id: string) => ({ id }));
+    const connectStakeholders = Object.values(data.stakeholders)
+      .flat()
+      .map((id) => ({ id: id }));
 
     const contract = await prisma.contract.create({
       data: {

@@ -12,13 +12,14 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import {
-  CONTRACT_STATUS,
   CONTRACT_TYPE_OPTIONS,
   TERM_TYPE_OPTIONS,
   SUPPLIER_SERVICE_OPTIONS,
   CURRENCY_OPTIONS,
   COUNTRY_OPTIONS,
+  STAKEHOLDER_ROLES,
 } from "@lib/types";
+import { User } from "@prisma/client";
 
 const { Title, Text } = Typography;
 
@@ -26,7 +27,7 @@ export default function ContractShow() {
   const { queryResult } = useShow();
   const { data, isLoading } = queryResult;
   const record = data?.data;
-
+  console.log(record);
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "active":
@@ -58,12 +59,17 @@ export default function ContractShow() {
     return options.find((option) => option.value === value)?.label || value;
   };
 
-  const renderStakeholderList = (stakeholders: any[]) => {
-    if (!stakeholders?.length) return <Text type="secondary">None</Text>;
-    
+  const renderStakeholderList = (stakeholders: any[], role: string) => {
+    console.log(stakeholders, role);
+    const stakeholdersWithRole = stakeholders.filter(
+      (u: User) => u.role === role
+    );
+    if (!stakeholdersWithRole?.length)
+      return <Text type="secondary">None</Text>;
+
     return (
       <Space direction="vertical">
-        {stakeholders.map((stakeholder: any) => (
+        {stakeholdersWithRole.map((stakeholder: any) => (
           <Text key={stakeholder.id}>
             {stakeholder.firstName} {stakeholder.lastName} ({stakeholder.email})
           </Text>
@@ -174,18 +180,11 @@ export default function ContractShow() {
               <Descriptions.Item label="Vendor">
                 <Text strong>{record?.vendor?.name}</Text>
               </Descriptions.Item>
-              <Descriptions.Item label="Contract Managers">
-                {renderStakeholderList(record?.contractManagers || [])}
-              </Descriptions.Item>
-              <Descriptions.Item label="Contract Owners">
-                {renderStakeholderList(record?.contractOwners || [])}
-              </Descriptions.Item>
-              <Descriptions.Item label="Legal Team">
-                {renderStakeholderList(record?.legalTeam || [])}
-              </Descriptions.Item>
-              <Descriptions.Item label="Category Sourcing Managers">
-                {renderStakeholderList(record?.categorySourcingManagers || [])}
-              </Descriptions.Item>
+              {STAKEHOLDER_ROLES.map(({ value, label, required }) => (
+                <Descriptions.Item label={label} key={value}>
+                  {renderStakeholderList(record?.stakeholders || [], value)}
+                </Descriptions.Item>
+              ))}
             </Descriptions>
           </Space>
         </Card>
