@@ -30,6 +30,7 @@ import {
 import { useState } from "react";
 import dayjs from "dayjs";
 import { BaseRecord, HttpError, useList } from "@refinedev/core";
+import { ContractAttachments } from "@/components/contracts/ContractAttachments";
 
 const { Text } = Typography;
 
@@ -276,6 +277,16 @@ export default function ContractCreate() {
               />
             </Form.Item>
           ))}
+        </Form.Item>
+
+        <Form.Item label="Attachments">
+          <ContractAttachments
+            contractId={formProps.initialValues?.id || ""}
+            attachments={[]}
+            onAttachmentsChange={(attachments) => {
+              formProps.form?.setFieldValue("attachments", attachments);
+            }}
+          />
         </Form.Item>
       </Form>
     </Create>

@@ -30,6 +30,7 @@ import {
 import dayjs from "dayjs";
 import { useState } from "react";
 import { BaseRecord, HttpError, useList } from "@refinedev/core";
+import { ContractAttachments } from "@/components/contracts/ContractAttachments";
 
 interface User {
   id: string;
@@ -307,6 +308,16 @@ export default function ContractEdit() {
               />
             </Form.Item>
           ))}
+        </Form.Item>
+
+        <Form.Item label="Attachments">
+          <ContractAttachments
+            contractId={record?.id?.toString() || ""}
+            attachments={record?.attachments || []}
+            onAttachmentsChange={(attachments) => {
+              formProps.form?.setFieldValue("attachments", attachments);
+            }}
+          />
         </Form.Item>
       </Form>
     </Edit>

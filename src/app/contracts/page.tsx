@@ -14,6 +14,7 @@ import { useState } from "react";
 import { CONTRACT_STATUS } from "@lib/types";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { ImportExportButtons } from "@/components/contracts/ImportExportButtons";
 
 interface ExtendedSession {
   user: {
@@ -51,6 +52,10 @@ export default function ContractList() {
 
   return (
     <List
+      headerProps={{
+        title: "Contracts",
+        extra: <ImportExportButtons />,
+      }}
       headerButtons={
         !isReadOnly
           ? [
