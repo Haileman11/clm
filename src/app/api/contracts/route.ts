@@ -58,17 +58,19 @@ export async function POST(req: Request) {
     }
 
     const data = await req.json();
+    const { attachments, ...contractData } = data;
 
     // Generate contract number
     const contractNumber = await generateContractNumber();
 
-    const connectStakeholders = Object.values(data.stakeholders)
+    const connectStakeholders = Object.values(contractData.stakeholders)
       .flat()
       .map((id) => ({ id: id }));
 
+    // Create the contract
     const contract = await prisma.contract.create({
       data: {
-        ...data,
+        ...contractData,
         stakeholders: {
           connect: connectStakeholders,
         },
@@ -76,7 +78,35 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(contract);
+    // If there are temporary attachments, create them in the database
+    if (attachments && attachments.length > 0) {
+      await Promise.all(
+        attachments.map((attachment: any) =>
+          prisma.attachment.create({
+            data: {
+              name: attachment.name,
+              url: attachment.url,
+              type: attachment.type,
+              size: attachment.size,
+              contractId: contract.id,
+              uploadedBy: session.user?.email || "Unknown",
+            },
+          })
+        )
+      );
+    }
+
+    // Return the contract with its attachments
+    const contractWithAttachments = await prisma.contract.findUnique({
+      where: { id: contract.id },
+      include: {
+        vendor: true,
+        stakeholders: true,
+        attachments: true,
+      },
+    });
+
+    return NextResponse.json(contractWithAttachments);
   } catch (error) {
     console.error("Error creating contract:", error);
     return NextResponse.json(

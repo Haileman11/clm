@@ -19,6 +19,7 @@ export async function GET(
       include: {
         vendor: true,
         stakeholders: true,
+        attachments: true,
       },
     });
 

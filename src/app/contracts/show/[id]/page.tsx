@@ -2,7 +2,7 @@
 
 import { Show } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
-import { Typography, Card, Descriptions, Tag, Space, Divider } from "antd";
+import { Typography, Card, Descriptions, Tag, Space, Divider, List } from "antd";
 import {
   CalendarOutlined,
   DollarOutlined,
@@ -10,6 +10,7 @@ import {
   ShopOutlined,
   TeamOutlined,
   ClockCircleOutlined,
+  PaperClipOutlined,
 } from "@ant-design/icons";
 import {
   CONTRACT_TYPE_OPTIONS,
@@ -19,9 +20,26 @@ import {
   COUNTRY_OPTIONS,
   STAKEHOLDER_ROLES,
 } from "@lib/types";
-import { User } from "@prisma/client";
 
 const { Title, Text } = Typography;
+
+interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+}
 
 export default function ContractShow() {
   const { queryResult } = useShow();
@@ -186,6 +204,37 @@ export default function ContractShow() {
                 </Descriptions.Item>
               ))}
             </Descriptions>
+          </Space>
+        </Card>
+
+        {/* Attachments */}
+        <Card>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            <Title level={4}>
+              <PaperClipOutlined /> Attachments
+            </Title>
+            {record?.attachments && record.attachments.length > 0 ? (
+              <List
+                itemLayout="horizontal"
+                dataSource={record.attachments as Attachment[]}
+                renderItem={(attachment: Attachment) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      title={
+                        <a href={attachment.url} target="_blank" rel="noopener noreferrer">
+                          {attachment.name}
+                        </a>
+                      }
+                      description={`Uploaded by ${attachment.uploadedBy} on ${new Date(
+                        attachment.uploadedAt
+                      ).toLocaleDateString()}`}
+                    />
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Text type="secondary">No attachments found</Text>
+            )}
           </Space>
         </Card>
 

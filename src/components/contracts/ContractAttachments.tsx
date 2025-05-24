@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 
 interface Attachment {
-  id: string;
+  id?: string;
   name: string;
   url: string;
   type: string;
@@ -14,7 +14,7 @@ interface Attachment {
 }
 
 interface ContractAttachmentsProps {
-  contractId: string;
+  contractId?: string;
   attachments: Attachment[];
   onAttachmentsChange?: (attachments: Attachment[]) => void;
 }
@@ -32,7 +32,9 @@ export const ContractAttachments = ({
       setUploading(true);
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("contractId", contractId);
+      if (contractId) {
+        formData.append("contractId", contractId);
+      }
 
       const response = await fetch("/api/contracts/attachments", {
         method: "POST",
@@ -58,20 +60,23 @@ export const ContractAttachments = ({
     return false; // Prevent default upload behavior
   };
 
-  const handleDelete = async (attachmentId: string) => {
+  const handleDelete = async (attachment: Attachment) => {
     try {
-      const response = await fetch(`/api/contracts/attachments/${attachmentId}`, {
-        method: "DELETE",
-      });
+      // If we have an ID, it's a saved attachment
+      if (attachment.id) {
+        const response = await fetch(`/api/contracts/attachments?id=${attachment.id}`, {
+          method: "DELETE",
+        });
 
-      if (!response.ok) {
-        throw new Error("Delete failed");
+        if (!response.ok) {
+          throw new Error("Delete failed");
+        }
       }
 
       message.success("Attachment deleted successfully");
       
       if (onAttachmentsChange) {
-        onAttachmentsChange(attachments.filter(a => a.id !== attachmentId));
+        onAttachmentsChange(attachments.filter(a => a.url !== attachment.url));
       }
     } catch (error) {
       message.error("Failed to delete attachment");
@@ -104,7 +109,7 @@ export const ContractAttachments = ({
                 type="text"
                 danger
                 icon={<DeleteOutlined />}
-                onClick={() => handleDelete(attachment.id)}
+                onClick={() => handleDelete(attachment)}
               >
                 Delete
               </Button>,

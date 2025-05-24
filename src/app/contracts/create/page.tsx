@@ -279,7 +279,7 @@ export default function ContractCreate() {
           ))}
         </Form.Item>
 
-        <Form.Item label="Attachments">
+        <Form.Item label="Attachments" name="attachments">
           <ContractAttachments
             contractId={formProps.initialValues?.id || ""}
             attachments={[]}
