@@ -10,6 +10,7 @@ import {
   Tooltip,
   Space,
   Typography,
+  Upload,
 } from "antd";
 import {
   CalendarOutlined,
@@ -30,7 +31,6 @@ import {
 import dayjs from "dayjs";
 import { useState } from "react";
 import { BaseRecord, HttpError, useList } from "@refinedev/core";
-import { ContractAttachments } from "@/components/contracts/ContractAttachments";
 
 interface User {
   id: string;
@@ -311,13 +311,36 @@ export default function ContractEdit() {
         </Form.Item>
 
         <Form.Item label="Attachments">
-          <ContractAttachments
-            contractId={record?.id?.toString() || ""}
-            attachments={record?.attachments || []}
-            onAttachmentsChange={(attachments) => {
-              formProps.form?.setFieldValue("attachments", attachments);
+          <Form.Item
+            name="attachments"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => {
+              if (Array.isArray(e)) {
+                return e;
+              }
+              return e?.fileList.map((file: any) => {
+                if (file.response) {
+                  // Customize formdata with API response structure
+                  return {
+                    ...file,
+                    ...file.response,
+                  };
+                }
+                return file;
+              });
             }}
-          />
+            noStyle
+          >
+            <Upload.Dragger
+              name="file"
+              action={`/api/contracts/attachments`}
+              listType="picture"
+              maxCount={5}
+              multiple
+            >
+              <p className="ant-upload-text">Drag & drop a file in this area</p>
+            </Upload.Dragger>
+          </Form.Item>
         </Form.Item>
       </Form>
     </Edit>

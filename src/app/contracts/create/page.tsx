@@ -19,6 +19,7 @@ import {
   Tooltip,
   Space,
   Typography,
+  Upload,
 } from "antd";
 import {
   CalendarOutlined,
@@ -30,7 +31,6 @@ import {
 import { useState } from "react";
 import dayjs from "dayjs";
 import { BaseRecord, HttpError, useList } from "@refinedev/core";
-import { ContractAttachments } from "@/components/contracts/ContractAttachments";
 
 const { Text } = Typography;
 
@@ -39,11 +39,6 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
-  role: string;
-}
-
-interface Stakeholder {
-  userId: string;
   role: string;
 }
 
@@ -278,15 +273,37 @@ export default function ContractCreate() {
             </Form.Item>
           ))}
         </Form.Item>
-
-        <Form.Item label="Attachments" name="attachments">
-          <ContractAttachments
-            contractId={formProps.initialValues?.id || ""}
-            attachments={[]}
-            onAttachmentsChange={(attachments) => {
-              formProps.form?.setFieldValue("attachments", attachments);
+        <Form.Item label="Attachments">
+          <Form.Item
+            name="attachments"
+            valuePropName="fileList"
+            getValueFromEvent={(e) => {
+              if (Array.isArray(e)) {
+                return e;
+              }
+              return e?.fileList.map((file: any) => {
+                if (file.response) {
+                  // Customize formdata with API response structure
+                  return {
+                    ...file,
+                    ...file.response,
+                  };
+                }
+                return file;
+              });
             }}
-          />
+            noStyle
+          >
+            <Upload.Dragger
+              name="file"
+              action={`/api/contracts/attachments`}
+              listType="picture"
+              maxCount={5}
+              multiple
+            >
+              <p className="ant-upload-text">Drag & drop a file in this area</p>
+            </Upload.Dragger>
+          </Form.Item>
         </Form.Item>
       </Form>
     </Create>

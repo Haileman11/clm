@@ -15,6 +15,7 @@ export async function GET() {
       include: {
         vendor: true,
         stakeholders: true,
+        attachments: true,
       },
     });
     return NextResponse.json(contracts);
@@ -67,6 +68,10 @@ export async function POST(req: Request) {
       .flat()
       .map((id) => ({ id: id }));
 
+    const connectAttachments = attachments.map((attachment: any) => ({
+      id: attachment.id,
+    }));
+
     // Create the contract
     const contract = await prisma.contract.create({
       data: {
@@ -74,31 +79,11 @@ export async function POST(req: Request) {
         stakeholders: {
           connect: connectStakeholders,
         },
+        attachments: {
+          connect: connectAttachments,
+        },
         contractNumber,
       },
-    });
-
-    // If there are temporary attachments, create them in the database
-    if (attachments && attachments.length > 0) {
-      await Promise.all(
-        attachments.map((attachment: any) =>
-          prisma.attachment.create({
-            data: {
-              name: attachment.name,
-              url: attachment.url,
-              type: attachment.type,
-              size: attachment.size,
-              contractId: contract.id,
-              uploadedBy: session.user?.email || "Unknown",
-            },
-          })
-        )
-      );
-    }
-
-    // Return the contract with its attachments
-    const contractWithAttachments = await prisma.contract.findUnique({
-      where: { id: contract.id },
       include: {
         vendor: true,
         stakeholders: true,
@@ -106,7 +91,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(contractWithAttachments);
+    return NextResponse.json(contract);
   } catch (error) {
     console.error("Error creating contract:", error);
     return NextResponse.json(

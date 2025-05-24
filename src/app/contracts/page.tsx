@@ -1,20 +1,12 @@
 "use client";
 
-import {
-  List,
-  useTable,
-  EditButton,
-  DeleteButton,
-  ShowButton,
-  CreateButton,
-  DateField,
-} from "@refinedev/antd";
+import { List, useTable, DateField } from "@refinedev/antd";
 import { Table, Space, Input, Select, Button, Tag } from "antd";
 import { useState } from "react";
 import { CONTRACT_STATUS } from "@lib/types";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { ImportExportButtons } from "@/components/contracts/ImportExportButtons";
+import { useRouter } from "next/navigation";
 
 interface ExtendedSession {
   user: {
@@ -31,43 +23,38 @@ export default function ContractList() {
   const isReadOnly = session?.user?.role !== "CONTRACT_MANAGER";
 
   const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState<typeof CONTRACT_STATUS[keyof typeof CONTRACT_STATUS] | "">("");
+  const [statusFilter, setStatusFilter] = useState<
+    (typeof CONTRACT_STATUS)[keyof typeof CONTRACT_STATUS] | ""
+  >("");
 
   const { tableProps } = useTable({
     resource: "contracts",
     filters: {
       initial: [
-      {
-        field: "name",
-        operator: "contains",
-        value: searchText,
-      },
-      ...(statusFilter ? [{
-        field: "status",
-        operator: "eq" as const,
-        value: statusFilter,
-      }] : []),
-    ],}
+        {
+          field: "name",
+          operator: "contains",
+          value: searchText,
+        },
+        ...(statusFilter
+          ? [
+              {
+                field: "status",
+                operator: "eq" as const,
+                value: statusFilter,
+              },
+            ]
+          : []),
+      ],
+    },
   });
 
   return (
     <List
       headerProps={{
         title: "Contracts",
-        extra: <ImportExportButtons />,
+        extra: !isReadOnly ? <ImportExportButtons /> : undefined,
       }}
-      headerButtons={
-        !isReadOnly
-          ? [
-              <Button
-                type="primary"
-                onClick={() => router.push("/contracts/create")}
-              >
-                Create Contract
-              </Button>,
-            ]
-          : undefined
-      }
     >
       <Table {...tableProps} rowKey="id">
         <Table.Column
@@ -138,4 +125,4 @@ export default function ContractList() {
       </Table>
     </List>
   );
-} 
+}

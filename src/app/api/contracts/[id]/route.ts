@@ -74,12 +74,16 @@ export async function PATCH(
       status,
       vendorId,
       stakeholders,
+      attachments,
     } = body;
 
     const connectStakeholders = Object.values(stakeholders)
       .flat()
       .map((id) => ({ id: id }));
 
+    const connectAttachments = attachments.map((attachment: any) => ({
+      id: attachment.id,
+    }));
     const contract = await prisma.contract.update({
       where: { id },
       data: {
@@ -98,10 +102,14 @@ export async function PATCH(
         stakeholders: {
           set: connectStakeholders as { id: string }[],
         },
+        attachments: {
+          set: connectAttachments as { id: string }[],
+        },
       },
       include: {
         vendor: true,
         stakeholders: true,
+        attachments: true,
       },
     });
 
