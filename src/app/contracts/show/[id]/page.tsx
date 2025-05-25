@@ -20,6 +20,8 @@ import {
   COUNTRY_OPTIONS,
   STAKEHOLDER_ROLES,
 } from "@lib/types";
+import { RequestReview } from "@/components/contracts/RequestReview";
+import { ContractReviews } from "@/components/contracts/ContractReviews";
 
 const { Title, Text } = Typography;
 
@@ -235,6 +237,34 @@ export default function ContractShow() {
             ) : (
               <Text type="secondary">No attachments found</Text>
             )}
+          </Space>
+        </Card>
+
+        {/* Reviews */}
+        <Card>
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            <Space style={{ width: "100%", justifyContent: "space-between" }}>
+              <Title level={4}>
+                <TeamOutlined /> Reviews
+              </Title>
+              {record?.status === "NEW" && record?.id && (
+                <RequestReview
+                  contractId={record.id.toString()}
+                  onSuccess={() => {
+                    // Refresh the page to show updated reviews
+                    window.location.reload();
+                  }}
+                />
+              )}
+            </Space>
+            <ContractReviews
+              contractId={record?.id?.toString() || ""}
+              reviews={record?.reviews || []}
+              onReviewUpdate={() => {
+                // Refresh the page to show updated reviews
+                window.location.reload();
+              }}
+            />
           </Space>
         </Card>
 

@@ -74,9 +74,10 @@ model Contract {
   vendor            Vendor         @relation(fields: [vendorId], references: [id])
   vendorId          String
   stakeholders      User[]
+  attachments       Attachment[]
+  reviews           Review[]
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
-  attachments       Attachment[]
 }
 
 model Attachment {
@@ -92,10 +93,38 @@ model Attachment {
 
 enum ContractStatus {
   NEW
+  PENDING_REVIEW
   REVIEWED
   ACTIVE
   EXPIRED
   RENEWED
   INACTIVE
   TERMINATED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReviewType {
+  LEGAL
+  CATEGORY_SOURCING
+}
+
+model Review {
+  id          String       @id @default(cuid())
+  contract    Contract     @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contractId  String
+  reviewer    User         @relation(fields: [reviewerId], references: [id])
+  reviewerId  String
+  type        ReviewType
+  status      ReviewStatus @default(PENDING)
+  comments    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([contractId])
+  @@index([reviewerId])
 }
