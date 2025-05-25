@@ -2,6 +2,7 @@ import { List, Tag, Button, Modal, Form, Input, message, Select } from "antd";
 import { useState } from "react";
 import { useApiUrl } from "@refinedev/core";
 import { useSession } from "next-auth/react";
+import { useForm } from "@refinedev/antd";
 
 interface Review {
   id: string;
@@ -31,10 +32,6 @@ export const ContractReviews = ({
 }: ContractReviewsProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const apiUrl = useApiUrl();
-  const { data: session } = useSession();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -47,37 +44,20 @@ export const ContractReviews = ({
     }
   };
 
-  const handleReview = async (values: { status: string; comments: string }) => {
-    if (!selectedReview) return;
-
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `${apiUrl}/contracts/${contractId}/reviews/${selectedReview.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update review");
-      }
-
+  const { form, formProps, saveButtonProps } = useForm({
+    resource: `contracts/${contractId}/reviews`,
+    action: "edit",
+    id: selectedReview?.id,
+    onMutationSuccess: () => {
       message.success("Review updated successfully");
       setIsModalOpen(false);
-      form.resetFields();
       onReviewUpdate?.();
-    } catch (error) {
+    },
+    onMutationError: (error) => {
       message.error("Failed to update review");
       console.error("Error updating review:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
   const showReviewModal = (review: Review) => {
     setSelectedReview(review);
@@ -142,12 +122,7 @@ export const ContractReviews = ({
         onCancel={() => setIsModalOpen(false)}
         footer={null}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleReview}
-          disabled={loading}
-        >
+        <Form {...formProps} layout="vertical">
           <Form.Item
             name="status"
             label="Status"
@@ -168,7 +143,7 @@ export const ContractReviews = ({
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading}>
+            <Button type="primary" {...saveButtonProps}>
               Submit Review
             </Button>
           </Form.Item>
