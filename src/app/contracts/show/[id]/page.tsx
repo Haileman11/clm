@@ -181,6 +181,18 @@ export default function ContractShow() {
                   ? new Date(record.expirationDate).toLocaleDateString()
                   : "-"}
               </Descriptions.Item>
+              {record?.renewedDate && (
+                <>
+                  <Descriptions.Item label="Last Renewed Date">
+                    {new Date(record.renewedDate).toLocaleDateString()}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Renewed By">
+                    {record.renewedBy
+                      ? `${record.renewedBy.firstName} ${record.renewedBy.lastName}`
+                      : "-"}
+                  </Descriptions.Item>
+                </>
+              )}
             </Descriptions>
           </Space>
         </Card>

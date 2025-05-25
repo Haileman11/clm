@@ -1,84 +1,67 @@
-import { Button, message } from "antd";
-import { useApiUrl } from "@refinedev/core";
-import { useState } from "react";
-import { RenewContractModal } from "./RenewContractModal";
+import { Button, Space, message } from "antd";
+import { usePermissions } from "@hooks/usePermissions";
+import { WithPermission } from "@components/withPermission";
 
 interface ContractActionsProps {
   contractId: string;
   status: string;
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
-export const ContractActions: React.FC<ContractActionsProps> = ({
-  contractId,
-  status,
-  onSuccess,
-}) => {
-  const apiUrl = useApiUrl();
-  const [renewModalOpen, setRenewModalOpen] = useState(false);
+export function ContractActions({ contractId, status, onSuccess }: ContractActionsProps) {
+  const { can } = usePermissions();
 
   const handleActivate = async () => {
     try {
-      const response = await fetch(`${apiUrl}/contracts/${contractId}/activate`, {
+      const response = await fetch(`/api/contracts/${contractId}/activate`, {
         method: "POST",
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to activate contract");
+        throw new Error("Failed to activate contract");
       }
 
-      message.success("Contract activated successfully");
-      onSuccess?.();
+      onSuccess();
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "Failed to activate contract");
+      message.error("Failed to activate contract");
     }
   };
 
-  const handleTerminate = async () => {
+  const handleRenew = async () => {
     try {
-      const response = await fetch(`${apiUrl}/contracts/${contractId}/terminate`, {
+      const response = await fetch(`/api/contracts/${contractId}/renew`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ extensionPeriod: 12 }), // Default to 12 months
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to terminate contract");
+        throw new Error("Failed to renew contract");
       }
 
-      message.success("Contract terminated successfully");
-      onSuccess?.();
+      onSuccess();
     } catch (error) {
-      message.error(error instanceof Error ? error.message : "Failed to terminate contract");
+      message.error("Failed to renew contract");
     }
   };
 
   return (
-    <div className="space-x-2">
-      {status === "REVIEWED" && (
-        <Button type="primary" onClick={handleActivate}>
-          Activate Contract
-        </Button>
-      )}
-      {status === "ACTIVE" && (
-        <>
-          <Button type="primary" onClick={() => setRenewModalOpen(true)}>
-            Renew Contract
+    <Space>
+      <WithPermission action="contract:activate">
+        {status === "REVIEWED" && (
+          <Button type="primary" onClick={handleActivate}>
+            Activate
           </Button>
-          <Button danger onClick={handleTerminate}>
-            Terminate Contract
-          </Button>
-        </>
-      )}
-      <RenewContractModal
-        open={renewModalOpen}
-        onCancel={() => setRenewModalOpen(false)}
-        onSuccess={() => {
-          setRenewModalOpen(false);
-          onSuccess?.();
-        }}
-        contractId={contractId}
-      />
-    </div>
+        )}
+      </WithPermission>
+
+      <WithPermission action="contract:renew">
+        {status === "ACTIVE" && (
+          <Button onClick={handleRenew}>Renew</Button>
+        )}
+      </WithPermission>
+    </Space>
   );
-}; 
+} 

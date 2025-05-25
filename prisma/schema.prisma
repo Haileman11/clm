@@ -26,6 +26,7 @@ model User {
   Contract   Contract? @relation(fields: [contractId], references: [id])
   contractId String?
   Review     Review[]
+  renewedContracts Contract[] @relation("ContractRenewal")
 }
 
 enum UserRole {
@@ -77,6 +78,9 @@ model Contract {
   stakeholders      User[]
   attachments       Attachment[]
   reviews           Review[]
+  renewedDate       DateTime?
+  renewedBy         User?         @relation("ContractRenewal", fields: [renewedById], references: [id])
+  renewedById       String?
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 }

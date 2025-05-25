@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@lib/prisma";
 import authOptions from "@app/api/auth/[...nextauth]/options";
+import { checkPermission } from "@lib/apiPermissions";
 
 // POST /api/contracts/[id]/activate - Activate a contract
 export async function POST(
@@ -12,6 +13,14 @@ export async function POST(
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    // Check if user has permission to activate contracts
+    const { authorized, response } = await checkPermission(request, {
+      action: "contract:activate",
+    });
+
+    if (!authorized) {
+      return response;
     }
 
     // Get the contract

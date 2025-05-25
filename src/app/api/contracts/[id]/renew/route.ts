@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@lib/prisma";
 import authOptions from "@app/api/auth/[...nextauth]/options";
+import { checkPermission } from "@lib/apiPermissions";
 
 // POST /api/contracts/[id]/renew - Renew a contract
 export async function POST(
@@ -12,6 +13,15 @@ export async function POST(
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check if user has permission to renew contracts
+    const { authorized, response } = await checkPermission(request, {
+      action: "contract:renew",
+    });
+
+    if (!authorized) {
+      return response;
     }
 
     // Get the contract
@@ -51,12 +61,28 @@ export async function POST(
     const newExpiration = new Date(currentExpiration);
     newExpiration.setMonth(newExpiration.getMonth() + extensionPeriod);
 
-    // Update contract with new expiration date
+    // Get the current user
+    const user = await prisma.user.findUnique({
+      where: { keycloakId: session.user.id },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // Update contract with new expiration date and renewal info
     const updatedContract = await prisma.contract.update({
       where: { id: params.id },
       data: {
         expirationDate: newExpiration,
-        status: "ACTIVE", // Keep it active
+        status: "RENEWED",
+        renewedDate: new Date(),
+        renewedBy: {
+          connect: { id: user.id }
+        }
       },
     });
 
