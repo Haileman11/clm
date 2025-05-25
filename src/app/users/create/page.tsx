@@ -5,6 +5,7 @@ import { Form, Input, Select, AutoComplete, message } from "antd";
 import { useState } from "react";
 import { useApiUrl } from "@refinedev/core";
 import debounce from "lodash/debounce";
+import { USER_ROLES } from "@lib/types";
 
 interface KeycloakUser {
   id: string;
@@ -141,15 +142,7 @@ export default function UserCreate() {
 
         <Form.Item label="Role" name="role" rules={[{ required: true }]}>
           <Select
-            options={[
-              { label: "Contract Manager", value: "CONTRACT_MANAGER" },
-              { label: "Contract Owner", value: "CONTRACT_OWNER" },
-              {
-                label: "Category Sourcing Manager",
-                value: "CATEGORY_SOURCING_MANAGER",
-              },
-              { label: "Legal", value: "LEGAL" },
-            ]}
+            options={USER_ROLES.map((role) => ({ label: role, value: role }))}
           />
         </Form.Item>
       </Form>

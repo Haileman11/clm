@@ -25,6 +25,7 @@ model User {
   updatedAt  DateTime  @updatedAt
   Contract   Contract? @relation(fields: [contractId], references: [id])
   contractId String?
+  Review     Review[]
 }
 
 enum UserRole {
@@ -109,21 +110,21 @@ enum ReviewStatus {
 }
 
 enum ReviewType {
-  LEGAL
-  CATEGORY_SOURCING
+  LEGAL_TEAM
+  CATEGORY_SOURCING_MANAGER
 }
 
 model Review {
-  id          String       @id @default(cuid())
-  contract    Contract     @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  contractId  String
-  reviewer    User         @relation(fields: [reviewerId], references: [id])
-  reviewerId  String
-  type        ReviewType
-  status      ReviewStatus @default(PENDING)
-  comments    String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id         String       @id @default(cuid())
+  contract   Contract     @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contractId String
+  reviewer   User         @relation(fields: [reviewerId], references: [id])
+  reviewerId String
+  type       ReviewType
+  status     ReviewStatus @default(PENDING)
+  comments   String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 
   @@index([contractId])
   @@index([reviewerId])

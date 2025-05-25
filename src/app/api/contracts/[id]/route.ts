@@ -20,6 +20,11 @@ export async function GET(
         vendor: true,
         stakeholders: true,
         attachments: true,
+        reviews: {
+          include: {
+            reviewer: true,
+          },
+        },
       },
     });
 
@@ -110,6 +115,7 @@ export async function PATCH(
         vendor: true,
         stakeholders: true,
         attachments: true,
+        reviews: true,
       },
     });
 

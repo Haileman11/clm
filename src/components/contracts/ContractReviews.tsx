@@ -1,11 +1,11 @@
-import { List, Tag, Button, Modal, Form, Input, message } from "antd";
+import { List, Tag, Button, Modal, Form, Input, message, Select } from "antd";
 import { useState } from "react";
 import { useApiUrl } from "@refinedev/core";
 import { useSession } from "next-auth/react";
 
 interface Review {
   id: string;
-  type: "LEGAL" | "CATEGORY_SOURCING";
+  type: "LEGAL_TEAM" | "CATEGORY_SOURCING_MANAGER";
   status: "PENDING" | "APPROVED" | "REJECTED";
   comments?: string;
   reviewer: {
@@ -97,10 +97,7 @@ export const ContractReviews = ({
           <List.Item
             actions={[
               review.status === "PENDING" && (
-                <Button
-                  type="link"
-                  onClick={() => showReviewModal(review)}
-                >
+                <Button type="link" onClick={() => showReviewModal(review)}>
                   Review
                 </Button>
               ),
@@ -109,7 +106,9 @@ export const ContractReviews = ({
             <List.Item.Meta
               title={
                 <span>
-                  {review.type === "LEGAL" ? "Legal Review" : "Category Sourcing Review"}
+                  {review.type === "LEGAL_TEAM"
+                    ? "Legal Review"
+                    : "Category Sourcing Review"}
                   <Tag
                     color={getStatusColor(review.status)}
                     style={{ marginLeft: 8 }}
@@ -121,7 +120,8 @@ export const ContractReviews = ({
               description={
                 <>
                   <div>
-                    Reviewer: {review.reviewer.firstName} {review.reviewer.lastName}
+                    Reviewer: {review.reviewer.firstName}{" "}
+                    {review.reviewer.lastName}
                   </div>
                   <div>
                     Requested: {new Date(review.createdAt).toLocaleString()}
@@ -153,7 +153,10 @@ export const ContractReviews = ({
             label="Status"
             rules={[{ required: true, message: "Please select status" }]}
           >
-            <Input disabled />
+            <Select>
+              <Select.Option value="APPROVED">Approved</Select.Option>
+              <Select.Option value="REJECTED">Rejected</Select.Option>
+            </Select>
           </Form.Item>
 
           <Form.Item
@@ -173,4 +176,4 @@ export const ContractReviews = ({
       </Modal>
     </div>
   );
-}; 
+};

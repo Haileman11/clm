@@ -2,7 +2,15 @@
 
 import { Show } from "@refinedev/antd";
 import { useShow } from "@refinedev/core";
-import { Typography, Card, Descriptions, Tag, Space, Divider, List } from "antd";
+import {
+  Typography,
+  Card,
+  Descriptions,
+  Tag,
+  Space,
+  Divider,
+  List,
+} from "antd";
 import {
   CalendarOutlined,
   DollarOutlined,
@@ -223,11 +231,17 @@ export default function ContractShow() {
                   <List.Item>
                     <List.Item.Meta
                       title={
-                        <a href={attachment.url} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           {attachment.name}
                         </a>
                       }
-                      description={`Uploaded by ${attachment.uploadedBy} on ${new Date(
+                      description={`Uploaded by ${
+                        attachment.uploadedBy
+                      } on ${new Date(
                         attachment.uploadedAt
                       ).toLocaleDateString()}`}
                     />
@@ -247,15 +261,18 @@ export default function ContractShow() {
               <Title level={4}>
                 <TeamOutlined /> Reviews
               </Title>
-              {record?.status === "NEW" && record?.id && (
-                <RequestReview
-                  contractId={record.id.toString()}
-                  onSuccess={() => {
-                    // Refresh the page to show updated reviews
-                    window.location.reload();
-                  }}
-                />
-              )}
+              {(record?.status === "NEW" ||
+                record?.status === "PENDING_REVIEW") &&
+                record?.id && (
+                  <RequestReview
+                    contractId={record.id.toString()}
+                    onSuccess={() => {
+                      // Refresh the page to show updated reviews
+                      window.location.reload();
+                    }}
+                    stakeholders={record?.stakeholders}
+                  />
+                )}
             </Space>
             <ContractReviews
               contractId={record?.id?.toString() || ""}

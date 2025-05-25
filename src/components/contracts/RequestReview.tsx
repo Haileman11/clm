@@ -13,10 +13,15 @@ interface User {
 
 interface RequestReviewProps {
   contractId: string;
+  stakeholders: User[];
   onSuccess?: () => void;
 }
 
-export const RequestReview = ({ contractId, onSuccess }: RequestReviewProps) => {
+export const RequestReview = ({
+  contractId,
+  onSuccess,
+  stakeholders,
+}: RequestReviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -26,20 +31,9 @@ export const RequestReview = ({ contractId, onSuccess }: RequestReviewProps) => 
   const { data: session } = useSession();
 
   const fetchReviewers = async (type: string) => {
-    try {
-      setFetchingReviewers(true);
-      const response = await fetch(`${apiUrl}/users/reviewers?type=${type}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch reviewers");
-      }
-      const data = await response.json();
-      setReviewers(data);
-    } catch (error) {
-      message.error("Failed to fetch reviewers");
-      console.error("Error fetching reviewers:", error);
-    } finally {
-      setFetchingReviewers(false);
-    }
+    setReviewers(
+      stakeholders.filter((stakeholder) => stakeholder.role == type)
+    );
   };
 
   const handleTypeChange = (value: string) => {
@@ -50,13 +44,16 @@ export const RequestReview = ({ contractId, onSuccess }: RequestReviewProps) => 
   const handleSubmit = async (values: { type: string; reviewerId: string }) => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiUrl}/contracts/${contractId}/reviews`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
+      const response = await fetch(
+        `${apiUrl}/contracts/${contractId}/reviews`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to request review");
@@ -98,8 +95,8 @@ export const RequestReview = ({ contractId, onSuccess }: RequestReviewProps) => 
             rules={[{ required: true, message: "Please select review type" }]}
           >
             <Select onChange={handleTypeChange}>
-              <Select.Option value="LEGAL">Legal Review</Select.Option>
-              <Select.Option value="CATEGORY_SOURCING">
+              <Select.Option value="LEGAL_TEAM">Legal Review</Select.Option>
+              <Select.Option value="CATEGORY_SOURCING_MANAGER">
                 Category Sourcing Review
               </Select.Option>
             </Select>
@@ -134,4 +131,4 @@ export const RequestReview = ({ contractId, onSuccess }: RequestReviewProps) => 
       </Modal>
     </>
   );
-}; 
+};

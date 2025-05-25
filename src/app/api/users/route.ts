@@ -43,17 +43,19 @@ export async function GET(request: Request) {
     const role = searchParams.get("role");
 
     const users = await prisma.user.findMany({
-      where: role ? {
-        role: role as any
-      } : undefined,
+      where: role
+        ? {
+            role: role as any,
+          }
+        : undefined,
       select: {
         id: true,
         firstName: true,
         lastName: true,
         email: true,
         role: true,
-        department: true
-      }
+        department: true,
+      },
     });
 
     return NextResponse.json(users);
