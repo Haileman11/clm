@@ -45,7 +45,7 @@ export async function GET(
   }
 }
 
-// PATCH /api/contracts/:id - Update a contract
+// PATCH /api/contracts/[id] - Update a contract
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
@@ -56,74 +56,56 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const id = params.id;
-    if (!id) {
+    // Get the contract
+    const contract = await prisma.contract.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!contract) {
       return NextResponse.json(
-        { error: "Contract ID is required" },
+        { error: "Contract not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if contract is active
+    if (contract.status === "ACTIVE") {
+      return NextResponse.json(
+        { error: "Active contracts cannot be edited" },
         { status: 400 }
       );
     }
 
     const body = await request.json();
-    const {
-      name,
-      effectiveDate,
-      expirationDate,
-      clientLegalEntity,
-      termType,
-      contractType,
-      supplierService,
-      country,
-      currency,
-      totalValue,
-      status,
-      vendorId,
-      stakeholders,
-      attachments,
-    } = body;
 
-    const connectStakeholders = Object.values(stakeholders)
-      .flat()
-      .map((id) => ({ id: id }));
-
-    const connectAttachments = attachments.map((attachment: any) => ({
-      id: attachment.id,
-    }));
-    const contract = await prisma.contract.update({
-      where: { id },
+    // Update the contract
+    const updatedContract = await prisma.contract.update({
+      where: { id: params.id },
       data: {
-        name,
-        effectiveDate: new Date(effectiveDate),
-        expirationDate: new Date(expirationDate),
-        clientLegalEntity,
-        termType,
-        contractType,
-        supplierService,
-        country,
-        currency,
-        totalValue,
-        status,
-        vendorId,
-        stakeholders: {
-          set: connectStakeholders as { id: string }[],
-        },
-        attachments: {
-          set: connectAttachments as { id: string }[],
-        },
+        name: body.name,
+        clientLegalEntity: body.clientLegalEntity,
+        termType: body.termType,
+        contractType: body.contractType,
+        effectiveDate: body.effectiveDate,
+        expirationDate: body.expirationDate,
+        supplierService: body.supplierService,
+        country: body.country,
+        currency: body.currency,
+        totalValue: body.totalValue,
+        vendorId: body.vendorId,
       },
       include: {
         vendor: true,
         stakeholders: true,
         attachments: true,
-        reviews: true,
       },
     });
 
-    return NextResponse.json(contract);
+    return NextResponse.json(updatedContract);
   } catch (error) {
-    console.log(error);
+    console.error("Error updating contract:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Failed to update contract" },
       { status: 500 }
     );
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Show } from "@refinedev/antd";
-import { useShow } from "@refinedev/core";
+import { useShow, useApiUrl } from "@refinedev/core";
 import {
   Typography,
   Card,
@@ -10,6 +10,7 @@ import {
   Space,
   Divider,
   List,
+  Button,
 } from "antd";
 import {
   CalendarOutlined,
@@ -30,6 +31,9 @@ import {
 } from "@lib/types";
 import { RequestReview } from "@/components/contracts/RequestReview";
 import { ContractReviews } from "@/components/contracts/ContractReviews";
+import { message } from "antd";
+import { ContractActions } from "@/components/contracts/ContractActions";
+import { useRouter } from "next/navigation";
 
 const { Title, Text } = Typography;
 
@@ -55,6 +59,8 @@ export default function ContractShow() {
   const { queryResult } = useShow();
   const { data, isLoading } = queryResult;
   const record = data?.data;
+  const apiUrl = useApiUrl();
+  const router = useRouter();
   console.log(record);
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -107,14 +113,35 @@ export default function ContractShow() {
   };
 
   return (
-    <Show isLoading={isLoading}>
+    <Show
+      isLoading={isLoading}
+      headerButtons={({ defaultButtons }) => {
+        if (record?.status === "ACTIVE" && Array.isArray(defaultButtons)) {
+          return defaultButtons.filter((button: { key?: string }) => button.key !== "edit");
+        }
+        return defaultButtons;
+      }}
+    >
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         {/* Basic Information */}
-        <Card>
+        <Card
+          title={
+            <div className="flex justify-between items-center">
+              <span>Basic Information</span>
+              {record && (
+                <ContractActions
+                  contractId={record.id?.toString() || ""}
+                  status={record.status}
+                  onSuccess={() => {
+                    message.success("Contract status updated successfully");
+                    router.refresh();
+                  }}
+                />
+              )}
+            </div>
+          }
+        >
           <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-            <Title level={4}>
-              <FileTextOutlined /> Basic Information
-            </Title>
             <Descriptions bordered column={2}>
               <Descriptions.Item label="Name" span={2}>
                 <Text strong>{record?.name}</Text>

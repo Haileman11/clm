@@ -30,7 +30,9 @@ import {
 } from "@lib/types";
 import dayjs from "dayjs";
 import { useState } from "react";
-import { BaseRecord, HttpError, useList } from "@refinedev/core";
+import { BaseRecord, HttpError, useList, useShow } from "@refinedev/core";
+import { useRouter } from "next/navigation";
+import { message } from "antd";
 
 interface User {
   id: string;
@@ -41,19 +43,25 @@ interface User {
 }
 
 export default function ContractEdit() {
-  const { formProps, saveButtonProps, queryResult } = useForm({
-    resource: "contracts",
+  const { queryResult } = useShow();
+  const { data, isLoading } = queryResult;
+  const record = data?.data;
+  const router = useRouter();
+
+  // Check if contract is active
+  if (record?.status === "ACTIVE") {
+    message.error("Active contracts cannot be edited");
+    router.push(`/contracts/show/${record.id}`);
+    return null;
+  }
+
+  const { formProps, saveButtonProps } = useForm({
+    meta: {
+      select: "*, vendor(*), stakeholders(*)",
+    },
   });
 
   const [selectedCurrency, setSelectedCurrency] = useState<string>("ETB");
-  const { data, isLoading } = queryResult!;
-  const record = data?.data;
-  const { selectProps: vendorSelectProps } = useSelect({
-    resource: "vendors",
-    optionLabel: "name",
-    optionValue: "id",
-  });
-
   const { data: usersData, isLoading: isUsersLoading } = useList<User>({
     resource: "users",
     pagination: { mode: "off" }, // Get all users
@@ -110,20 +118,24 @@ export default function ContractEdit() {
           }
           style={{ marginBottom: 0 }}
         >
-          <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: "Please enter contract name" }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item
             name="clientLegalEntity"
             label="Client Legal Entity"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please enter client legal entity" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="termType"
             label="Term Type"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please select term type" }]}
           >
             <Select>
               {TERM_TYPE_OPTIONS.map((option) => (
@@ -136,7 +148,7 @@ export default function ContractEdit() {
           <Form.Item
             name="contractType"
             label="Contract Type"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please select contract type" }]}
           >
             <Select>
               {CONTRACT_TYPE_OPTIONS.map((option) => (
@@ -169,7 +181,7 @@ export default function ContractEdit() {
           <Form.Item
             name="effectiveDate"
             label="Effective Date"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please select effective date" }]}
             getValueProps={(value) => ({
               value: value ? dayjs(value) : undefined,
             })}
@@ -179,7 +191,7 @@ export default function ContractEdit() {
           <Form.Item
             name="expirationDate"
             label="Expiration Date"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please select expiration date" }]}
             getValueProps={(value) => ({
               value: value ? dayjs(value) : undefined,
             })}
@@ -200,7 +212,7 @@ export default function ContractEdit() {
           <Form.Item
             name="supplierService"
             label="Supplier Service"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please select supplier service" }]}
           >
             <Select showSearch>
               {SUPPLIER_SERVICE_OPTIONS.map((option) => (
@@ -213,7 +225,7 @@ export default function ContractEdit() {
           <Form.Item
             name="country"
             label="Country"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please select country" }]}
           >
             <Select
               showSearch
@@ -245,7 +257,7 @@ export default function ContractEdit() {
           <Form.Item
             name="currency"
             label="Currency"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please select currency" }]}
           >
             <Select
               onChange={(value) => setSelectedCurrency(value)}
@@ -260,7 +272,7 @@ export default function ContractEdit() {
           <Form.Item
             name="totalValue"
             label="Total Contract Value"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please enter total value" }]}
           >
             <InputNumber
               style={{ width: "100%" }}
@@ -286,7 +298,7 @@ export default function ContractEdit() {
             label="Vendor"
             rules={[{ required: true }]}
           >
-            <Select {...vendorSelectProps} showSearch />
+            <Select {...buildSelectProps("vendor")} showSearch />
           </Form.Item>
 
           {STAKEHOLDER_ROLES.map(({ value, label, required }) => (
