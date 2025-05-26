@@ -1,6 +1,8 @@
 import { Button, Space, message } from "antd";
 import { usePermissions } from "@hooks/usePermissions";
 import { WithPermission } from "@components/withPermission";
+import { RenewContractModal } from "./RenewContractModal";
+import { useState } from "react";
 
 interface ContractActionsProps {
   contractId: string;
@@ -8,9 +10,12 @@ interface ContractActionsProps {
   onSuccess: () => void;
 }
 
-export function ContractActions({ contractId, status, onSuccess }: ContractActionsProps) {
-  const { can } = usePermissions();
-
+export function ContractActions({
+  contractId,
+  status,
+  onSuccess,
+}: ContractActionsProps) {
+  const [renewModalOpen, setRenewModalOpen] = useState(false);
   const handleActivate = async () => {
     try {
       const response = await fetch(`/api/contracts/${contractId}/activate`, {
@@ -26,7 +31,25 @@ export function ContractActions({ contractId, status, onSuccess }: ContractActio
       message.error("Failed to activate contract");
     }
   };
+  const handleTerminate = async () => {
+    try {
+      const response = await fetch(`/api/contracts/${contractId}/terminate`, {
+        method: "POST",
+      });
 
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to terminate contract");
+      }
+
+      message.success("Contract terminated successfully");
+      onSuccess?.();
+    } catch (error) {
+      message.error(
+        error instanceof Error ? error.message : "Failed to terminate contract"
+      );
+    }
+  };
   const handleRenew = async () => {
     try {
       const response = await fetch(`/api/contracts/${contractId}/renew`, {
@@ -59,9 +82,27 @@ export function ContractActions({ contractId, status, onSuccess }: ContractActio
 
       <WithPermission action="contract:renew">
         {status === "ACTIVE" && (
-          <Button onClick={handleRenew}>Renew</Button>
+          <Button type="primary" onClick={handleRenew}>
+            Renew
+          </Button>
         )}
       </WithPermission>
+      <WithPermission action="contract:terminate">
+        {status === "ACTIVE" && (
+          <Button danger onClick={handleTerminate}>
+            Terminate Contract
+          </Button>
+        )}
+      </WithPermission>
+      <RenewContractModal
+        open={renewModalOpen}
+        onCancel={() => setRenewModalOpen(false)}
+        onSuccess={() => {
+          setRenewModalOpen(false);
+          onSuccess?.();
+        }}
+        contractId={contractId}
+      />
     </Space>
   );
-} 
+}

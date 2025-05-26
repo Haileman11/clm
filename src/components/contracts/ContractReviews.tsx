@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useApiUrl } from "@refinedev/core";
 import { useSession } from "next-auth/react";
 import { useForm } from "@refinedev/antd";
+import { WithPermission } from "@components/withPermission";
 
 interface Review {
   id: string;
@@ -77,9 +78,11 @@ export const ContractReviews = ({
           <List.Item
             actions={[
               review.status === "PENDING" && (
-                <Button type="link" onClick={() => showReviewModal(review)}>
-                  Review
-                </Button>
+                <WithPermission action="contract:review">
+                  <Button type="link" onClick={() => showReviewModal(review)}>
+                    Review
+                  </Button>
+                </WithPermission>
               ),
             ]}
           >

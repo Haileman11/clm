@@ -78,21 +78,50 @@ export async function PATCH(
 
     const body = await request.json();
 
+    const {
+      name,
+      effectiveDate,
+      expirationDate,
+      clientLegalEntity,
+      termType,
+      contractType,
+      supplierService,
+      country,
+      currency,
+      totalValue,
+      vendorId,
+      stakeholders,
+      attachments,
+    } = body;
+
+    const connectStakeholders = Object.values(stakeholders)
+      .flat()
+      .map((id) => ({ id: id }));
+
+    const connectAttachments = attachments.map((attachment: any) => ({
+      id: attachment.id,
+    }));
     // Update the contract
     const updatedContract = await prisma.contract.update({
       where: { id: params.id },
       data: {
-        name: body.name,
-        clientLegalEntity: body.clientLegalEntity,
-        termType: body.termType,
-        contractType: body.contractType,
-        effectiveDate: body.effectiveDate,
-        expirationDate: body.expirationDate,
-        supplierService: body.supplierService,
-        country: body.country,
-        currency: body.currency,
-        totalValue: body.totalValue,
-        vendorId: body.vendorId,
+        name,
+        effectiveDate: new Date(effectiveDate),
+        expirationDate: new Date(expirationDate),
+        clientLegalEntity,
+        termType,
+        contractType,
+        supplierService,
+        country,
+        currency,
+        totalValue,
+        vendorId,
+        stakeholders: {
+          set: connectStakeholders as { id: string }[],
+        },
+        attachments: {
+          set: connectAttachments as { id: string }[],
+        },
       },
       include: {
         vendor: true,

@@ -2,6 +2,8 @@ import { Button, Modal, Form, Select, message } from "antd";
 import { useState, useEffect } from "react";
 import { useApiUrl } from "@refinedev/core";
 import { useSession } from "next-auth/react";
+import { useForm } from "@refinedev/antd";
+import { WithPermission } from "@components/withPermission";
 
 interface User {
   id: string;
@@ -23,7 +25,7 @@ export const RequestReview = ({
   stakeholders,
 }: RequestReviewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form] = Form.useForm();
+
   const [loading, setLoading] = useState(false);
   const [reviewers, setReviewers] = useState<User[]>([]);
   const [fetchingReviewers, setFetchingReviewers] = useState(false);
@@ -40,42 +42,27 @@ export const RequestReview = ({
     form.setFieldValue("reviewerId", undefined);
     fetchReviewers(value);
   };
-
-  const handleSubmit = async (values: { type: string; reviewerId: string }) => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `${apiUrl}/contracts/${contractId}/reviews`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to request review");
-      }
-
-      message.success("Review requested successfully");
+  const { form, formProps, saveButtonProps } = useForm({
+    resource: `contracts/${contractId}/reviews`,
+    action: "create",
+    onMutationSuccess: () => {
+      message.success("Review created successfully");
       setIsModalOpen(false);
-      form.resetFields();
       onSuccess?.();
-    } catch (error) {
+    },
+    onMutationError: (error) => {
       message.error("Failed to request review");
-      console.error("Error requesting review:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      console.error("Error creating review:", error);
+    },
+  });
 
   return (
     <>
-      <Button type="primary" onClick={() => setIsModalOpen(true)}>
-        Request Review
-      </Button>
+      <WithPermission action="contract:request_review">
+        <Button type="primary" onClick={() => setIsModalOpen(true)}>
+          Request Review
+        </Button>
+      </WithPermission>
 
       <Modal
         title="Request Review"
@@ -83,12 +70,7 @@ export const RequestReview = ({
         onCancel={() => setIsModalOpen(false)}
         footer={null}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          disabled={loading}
-        >
+        <Form form={form} {...formProps} layout="vertical" disabled={loading}>
           <Form.Item
             name="type"
             label="Review Type"
@@ -123,7 +105,7 @@ export const RequestReview = ({
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading}>
+            <Button type="primary" {...saveButtonProps}>
               Submit
             </Button>
           </Form.Item>

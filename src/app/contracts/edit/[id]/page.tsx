@@ -48,17 +48,16 @@ export default function ContractEdit() {
   const record = data?.data;
   const router = useRouter();
 
-  // Check if contract is active
-  if (record?.status === "ACTIVE") {
-    message.error("Active contracts cannot be edited");
-    router.push(`/contracts/show/${record.id}`);
-    return null;
-  }
-
   const { formProps, saveButtonProps } = useForm({
     meta: {
       select: "*, vendor(*), stakeholders(*)",
     },
+  });
+
+  const { selectProps: vendorSelectProps } = useSelect({
+    resource: "vendors",
+    optionLabel: "name",
+    optionValue: "id",
   });
 
   const [selectedCurrency, setSelectedCurrency] = useState<string>("ETB");
@@ -79,6 +78,12 @@ export default function ContractEdit() {
     };
   };
 
+  // Check if contract is active
+  if (record?.status === "ACTIVE") {
+    message.error("Active contracts cannot be edited");
+    router.push(`/contracts/show/${record.id}`);
+    return null;
+  }
   return (
     <Edit
       saveButtonProps={saveButtonProps}
@@ -128,7 +133,9 @@ export default function ContractEdit() {
           <Form.Item
             name="clientLegalEntity"
             label="Client Legal Entity"
-            rules={[{ required: true, message: "Please enter client legal entity" }]}
+            rules={[
+              { required: true, message: "Please enter client legal entity" },
+            ]}
           >
             <Input />
           </Form.Item>
@@ -181,7 +188,9 @@ export default function ContractEdit() {
           <Form.Item
             name="effectiveDate"
             label="Effective Date"
-            rules={[{ required: true, message: "Please select effective date" }]}
+            rules={[
+              { required: true, message: "Please select effective date" },
+            ]}
             getValueProps={(value) => ({
               value: value ? dayjs(value) : undefined,
             })}
@@ -191,7 +200,9 @@ export default function ContractEdit() {
           <Form.Item
             name="expirationDate"
             label="Expiration Date"
-            rules={[{ required: true, message: "Please select expiration date" }]}
+            rules={[
+              { required: true, message: "Please select expiration date" },
+            ]}
             getValueProps={(value) => ({
               value: value ? dayjs(value) : undefined,
             })}
@@ -212,7 +223,9 @@ export default function ContractEdit() {
           <Form.Item
             name="supplierService"
             label="Supplier Service"
-            rules={[{ required: true, message: "Please select supplier service" }]}
+            rules={[
+              { required: true, message: "Please select supplier service" },
+            ]}
           >
             <Select showSearch>
               {SUPPLIER_SERVICE_OPTIONS.map((option) => (
@@ -298,7 +311,7 @@ export default function ContractEdit() {
             label="Vendor"
             rules={[{ required: true }]}
           >
-            <Select {...buildSelectProps("vendor")} showSearch />
+            <Select {...vendorSelectProps} showSearch />
           </Form.Item>
 
           {STAKEHOLDER_ROLES.map(({ value, label, required }) => (

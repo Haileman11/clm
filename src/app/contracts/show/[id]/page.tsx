@@ -59,7 +59,6 @@ export default function ContractShow() {
   const { queryResult } = useShow();
   const { data, isLoading } = queryResult;
   const record = data?.data;
-  const apiUrl = useApiUrl();
   const router = useRouter();
   console.log(record);
   const getStatusColor = (status: string) => {
@@ -116,8 +115,11 @@ export default function ContractShow() {
     <Show
       isLoading={isLoading}
       headerButtons={({ defaultButtons }) => {
+        // Hide edit button if contract is ACTIVE
         if (record?.status === "ACTIVE" && Array.isArray(defaultButtons)) {
-          return defaultButtons.filter((button: { key?: string }) => button.key !== "edit");
+          return defaultButtons.filter(
+            (button: { key?: string }) => button.key !== "edit"
+          );
         }
         return defaultButtons;
       }}
@@ -126,18 +128,20 @@ export default function ContractShow() {
         {/* Basic Information */}
         <Card
           title={
-            <div className="flex justify-between items-center">
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span>Basic Information</span>
-              {record && (
-                <ContractActions
-                  contractId={record.id?.toString() || ""}
-                  status={record.status}
-                  onSuccess={() => {
-                    message.success("Contract status updated successfully");
-                    router.refresh();
-                  }}
-                />
-              )}
+              <div style={{ display: "flex", flexDirection: "row-reverse" }}>
+                {record && (
+                  <ContractActions
+                    contractId={record.id?.toString() || ""}
+                    status={record.status}
+                    onSuccess={() => {
+                      message.success("Contract status updated successfully");
+                      router.refresh();
+                    }}
+                  />
+                )}
+              </div>
             </div>
           }
         >
