@@ -133,3 +133,15 @@ model Review {
   @@index([contractId])
   @@index([reviewerId])
 }
+
+model CronJobLog {
+  id          String   @id @default(cuid())
+  jobName     String
+  status      String   // "SUCCESS" or "ERROR"
+  message     String
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([jobName])
+  @@index([createdAt])
+}
