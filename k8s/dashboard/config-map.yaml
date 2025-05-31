@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clm-config
+data:
+  # Keycloak Configuration
+  KEYCLOAK_CLIENT_ID: clm-client
+  KEYCLOAK_CLIENT_SECRET: 0DrRJvT6lQytFj3PDyhFad6zLG6FwhRo
+  KEYCLOAK_ISSUER: http://keycloak.shared.safaricomet.net/realms/PMSDemo
+
+  KEYCLOAK_BASE_URL: http://keycloak.shared.safaricomet.net
+  KEYCLOAK_REALM: PMSDemo
+  # NextAuth Configuration
+  NEXTAUTH_SECRET: UItTuD1HcGXIj8ZfHUswhYdNd40Lc325R8VlxQPUoR0=
+  NEXTAUTH_URL: https://clm.digital.safaricomet.net
+  #dev
+  # NEXTAUTH_URL: http://localhost:3000
+
+  # Database Configuration
+  DATABASE_URL: "postgresql://postgres:pass@localhost:5432/clm?schema=public"
+
+  # Email Configuration
+  SMTP_HOST: 10.3.124.25
+  SMTP_PORT: 587
+  SMTP_SECURE: true
+  # SMTP_USER=your_smtp_username
+  # SMTP_PASSWORD=your_smtp_password
+  SMTP_FROM: Contract Lifecycle Management <noreply@safaricom.et>
+
+  # Node Env
+  NODE_ENV: production
+
+  #"clm"
+  NODE_TLS_REJECT_UNAUTHORIZED: "0"

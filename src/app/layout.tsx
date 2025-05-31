@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import React, { Suspense } from "react";
 import { RefineContext } from "./_refine_context";
-import { initializeCronJobs } from '@lib/cron/manager';
 
 export const metadata: Metadata = {
   title: "CLM Safaricom",
@@ -11,11 +10,6 @@ export const metadata: Metadata = {
     icon: "/icon.ico",
   },
 };
-
-// Initialize cron jobs
-if (process.env.NODE_ENV === 'production') {
-  initializeCronJobs();
-}
 
 export default function RootLayout({
   children,

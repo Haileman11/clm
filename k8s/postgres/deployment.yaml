@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clm-db
+  labels:
+    app: clm-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clm-db
+  template:
+    metadata:
+      labels:
+        app: clm-db
+    spec:
+      containers:
+        - name: postgres
+          image: mdc1-sfcr.safaricomet.net/miniapp/postgres
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "admin"
+            - name: POSTGRES_PASSWORD
+              value: "admin123"
+            - name: POSTGRES_DB
+              value: "clm"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "600m"
+            limits:
+              memory: "5Gi"
+              cpu: "800m"
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: clm-db-pvc
+      imagePullSecrets:
+        - name: bot-harbor-cred

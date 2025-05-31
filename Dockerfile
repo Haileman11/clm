@@ -1,43 +1,33 @@
-FROM refinedev/node:18 AS base
+FROM node:20  AS builder
+WORKDIR /app
 
-FROM base AS deps
+ENV PRISMA_CLI_QUERY_ENGINE_TYPE=binary
 
-RUN apk add --no-cache libc6-compat
+RUN npm config set strict-ssl false
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
+# Copy package.json and package-lock.json before installing dependencies
+COPY package*.json ./
 
-RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+# Clean npm cache and install dependencies with retry logic
+RUN npm install --retry 3 --no-optional
 
-FROM base AS builder
+# Copy Prisma schema file and related files
+COPY prisma ./prisma
 
-COPY --from=deps /app/refine/node_modules ./node_modules
-
+# Run Prisma generate to generate Prisma client
+RUN npx prisma generate
+RUN npx prisma db push
+RUN npx  prisma db seed
+# Copy the rest of the application files
 COPY . .
 
+# Build the application
 RUN npm run build
 
-FROM base AS runner
-
-ENV NODE_ENV production
-
-COPY --from=builder /app/refine/public ./public
-
-RUN mkdir .next
-RUN chown refine:nodejs .next
-
-COPY --from=builder --chown=refine:nodejs /app/refine/.next/standalone ./
-COPY --from=builder --chown=refine:nodejs /app/refine/.next/static ./.next/static
-
-USER refine
-
+# Expose the port the app runs on
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+# Command to run the app
+CMD ["npm", "start"]
 
-CMD ["node", "server.js"]

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clm
+  labels:
+    app: clm
+spec:
+  replicas: 1 # Define the number of replicas if needed
+  selector:
+    matchLabels:
+      app: clm
+  template:
+    metadata:
+      labels:
+        app: clm
+        application: clm
+    spec:
+      containers:
+        - name: clm-service
+          image: mdc1-sfcr.safaricomet.net/miniapp/clm
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: server
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: clm-config
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "700m"
+      imagePullSecrets:
+        - name: vms-cred

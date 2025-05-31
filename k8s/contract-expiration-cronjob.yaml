@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: contract-expiration-check
+spec:
+  schedule: "0 10 * * *" # Run daily at 10:00 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: contract-checker
+              image: your-registry/contract-cron:latest
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: your-db-secret
+                      key: DATABASE_URL
+                - name: SMTP_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: your-smtp-secret
+                      key: SMTP_HOST
+                - name: SMTP_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: your-smtp-secret
+                      key: SMTP_PORT
+                - name: SMTP_SECURE
+                  valueFrom:
+                    secretKeyRef:
+                      name: your-smtp-secret
+                      key: SMTP_SECURE
+                - name: SMTP_FROM
+                  valueFrom:
+                    secretKeyRef:
+                      name: your-smtp-secret
+                      key: SMTP_FROM
+          restartPolicy: OnFailure
