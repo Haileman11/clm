@@ -98,7 +98,7 @@ export async function PATCH(
       .flat()
       .map((id) => ({ id: id }));
 
-    const connectAttachments = attachments.map((attachment: any) => ({
+    const connectAttachments = attachments?.map((attachment: any) => ({
       id: attachment.id,
     }));
     // Update the contract

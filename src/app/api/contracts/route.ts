@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
     const data = await req.json();
     const { attachments, ...contractData } = data;
-
+    console.log(data);
     // Generate contract number
     const contractNumber = await generateContractNumber();
 
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
       .flat()
       .map((id) => ({ id: id }));
 
-    const connectAttachments = attachments.map((attachment: any) => ({
+    const connectAttachments = attachments?.map((attachment: any) => ({
       id: attachment.id,
     }));
 
