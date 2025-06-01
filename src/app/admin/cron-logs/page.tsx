@@ -3,7 +3,11 @@
 import { List } from "@refinedev/antd";
 import { useList } from "@refinedev/core";
 import { Table, Tag, Card, Typography, Space, Button, message } from "antd";
-import { ClockCircleOutlined, ReloadOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import {
+  ClockCircleOutlined,
+  ReloadOutlined,
+  PlayCircleOutlined,
+} from "@ant-design/icons";
 import { useState } from "react";
 
 const { Title } = Typography;
@@ -24,18 +28,18 @@ export default function CronLogsPage() {
   const handleTrigger = async () => {
     try {
       setIsTriggering(true);
-      const response = await fetch('/api/cron/trigger', {
-        method: 'POST',
+      const response = await fetch("/api/cron/trigger", {
+        method: "POST",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to trigger cron job');
+        throw new Error("Failed to trigger cron job");
       }
 
-      message.success('Cron job triggered successfully');
+      message.success("Cron job triggered successfully");
       refetch();
     } catch (error) {
-      message.error('Failed to trigger cron job');
+      message.error("Failed to trigger cron job");
     } finally {
       setIsTriggering(false);
     }
@@ -52,9 +56,7 @@ export default function CronLogsPage() {
       dataIndex: "status",
       key: "status",
       render: (status: string) => (
-        <Tag color={status === "SUCCESS" ? "success" : "error"}>
-          {status}
-        </Tag>
+        <Tag color={status === "SUCCESS" ? "success" : "error"}>{status}</Tag>
       ),
     },
     {
@@ -102,7 +104,7 @@ export default function CronLogsPage() {
         >
           Refresh
         </Button>,
-        ...(defaultButtons || []),
+        // ...(defaultButtons || []),
       ]}
     >
       <Card>
@@ -120,7 +122,8 @@ export default function CronLogsPage() {
             expandable={{
               expandedRowRender,
               expandedRowKeys,
-              onExpandedRowsChange: (keys) => setExpandedRowKeys(keys as string[]),
+              onExpandedRowsChange: (keys) =>
+                setExpandedRowKeys(keys as string[]),
             }}
             pagination={{
               total: data?.total,
@@ -131,4 +134,4 @@ export default function CronLogsPage() {
       </Card>
     </List>
   );
-} 
+}

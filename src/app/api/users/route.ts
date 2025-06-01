@@ -2,34 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../auth/[...nextauth]/options";
 import { prisma } from "../../../lib/prisma";
-import KeycloakAdminClient from "@keycloak/keycloak-admin-client";
-
-// Validate required environment variables
-const requiredEnvVars = [
-  "KEYCLOAK_BASE_URL",
-  "KEYCLOAK_REALM",
-  "KEYCLOAK_CLIENT_ID",
-  "KEYCLOAK_CLIENT_SECRET",
-];
-
-for (const envVar of requiredEnvVars) {
-  if (!process.env[envVar]) {
-    throw new Error(`Missing required environment variable: ${envVar}`);
-  }
-}
-
-const keycloakAdmin = new KeycloakAdminClient({
-  baseUrl: process.env.KEYCLOAK_BASE_URL,
-  realmName: process.env.KEYCLOAK_REALM,
-});
-
-async function initKeycloak() {
-  await keycloakAdmin.auth({
-    grantType: "client_credentials",
-    clientId: process.env.KEYCLOAK_CLIENT_ID!,
-    clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
-  });
-}
 
 // GET /api/users - Get all users
 export async function GET(request: Request) {
@@ -80,7 +52,7 @@ export async function POST(req: Request) {
     const { keycloakId, email, firstName, lastName, department, role } = body;
 
     // Initialize Keycloak admin client
-    await initKeycloak();
+    // await initKeycloak();
 
     // Create user in Keycloak
     // const keycloakUser = await keycloakAdmin.users.create({

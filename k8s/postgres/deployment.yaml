@@ -16,15 +16,15 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: mdc1-sfcr.safaricomet.net/miniapp/postgres
+          image: mdc1-sfcr.safaricomet.net/miniapp/postgres:17
           imagePullPolicy: Always
           ports:
             - containerPort: 5432
           env:
             - name: POSTGRES_USER
-              value: "admin"
+              value: "postgres"
             - name: POSTGRES_PASSWORD
-              value: "admin123"
+              value: "pass"
             - name: POSTGRES_DB
               value: "clm"
           volumeMounts:
@@ -33,11 +33,11 @@ spec:
               subPath: postgres
           resources:
             requests:
-              memory: "2Gi"
-              cpu: "600m"
+              memory: "512Mi"
+              cpu: "100m"
             limits:
-              memory: "5Gi"
-              cpu: "800m"
+              memory: "768Mi"
+              cpu: "200m"
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:

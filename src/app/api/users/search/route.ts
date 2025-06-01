@@ -1,21 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import authOptions from "../../auth/[...nextauth]/options";
-import KeycloakAdminClient from "@keycloak/keycloak-admin-client";
+import { getKeyCloakAdminClient } from "@lib/keycloak";
 
 // Initialize Keycloak admin client
-const keycloakAdmin = new KeycloakAdminClient({
-  baseUrl: process.env.KEYCLOAK_BASE_URL,
-  realmName: process.env.KEYCLOAK_REALM,
-});
 
-async function initKeycloak() {
-  await keycloakAdmin.auth({
-    grantType: "client_credentials",
-    clientId: process.env.KEYCLOAK_CLIENT_ID!,
-    clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
-  });
-}
 // GET /api/users/search - Search Keycloak users
 export async function GET(request: Request) {
   try {
@@ -32,11 +21,11 @@ export async function GET(request: Request) {
     }
 
     // Initialize Keycloak admin client
-    await initKeycloak();
 
+    const keycloakAdmin = await getKeyCloakAdminClient();
     // Search users in Keycloak
     const users = await keycloakAdmin.users.find({
-      realm: process.env.KEYCLOAK_REALM!,
+      realm: process.env.KEYCLOAK_REALM || "",
       email,
       exact: false, // Allow partial matches
     });
@@ -51,7 +40,7 @@ export async function GET(request: Request) {
         try {
           const roles = await keycloakAdmin.users.listClientRoleMappings({
             id: user.id!,
-            clientUniqueId: process.env.KEYCLOAK_CLIENT_ID!,
+            clientUniqueId: process.env.KEYCLOAK_CLIENT_ID || "",
           });
 
           return {

@@ -3,8 +3,9 @@ kind: Service
 metadata:
   name: clm-service
 spec:
+  type: LoadBalancer
   selector:
-    app: clm-service
+    app: clm
   ports:
     - protocol: TCP
       port: 3000

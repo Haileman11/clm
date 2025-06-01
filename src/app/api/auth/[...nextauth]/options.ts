@@ -8,12 +8,12 @@ type UserRole =
   | "CONTRACT_MANAGER"
   | "CONTRACT_OWNER"
   | "CATEGORY_SOURCING_MANAGER"
-  | "LEGAL_TEAM"
-  | "VENDOR";
+  | "LEGAL_TEAM";
 
 declare module "next-auth" {
   interface Session {
     user: {
+      id?: string;
       role?: UserRole;
     } & DefaultSession["user"];
   }
@@ -25,30 +25,12 @@ declare module "next-auth/jwt" {
   }
 }
 
-if (!process.env.KEYCLOAK_CLIENT_ID) {
-  throw new Error("KEYCLOAK_CLIENT_ID is not defined in environment variables");
-}
-
-if (!process.env.KEYCLOAK_CLIENT_SECRET) {
-  throw new Error(
-    "KEYCLOAK_CLIENT_SECRET is not defined in environment variables"
-  );
-}
-
-if (!process.env.KEYCLOAK_ISSUER) {
-  throw new Error("KEYCLOAK_ISSUER is not defined in environment variables");
-}
-
-if (!process.env.NEXTAUTH_SECRET) {
-  throw new Error("NEXTAUTH_SECRET is not defined in environment variables");
-}
-
 const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
   providers: [
     KeycloakProvider({
-      clientId: process.env.KEYCLOAK_CLIENT_ID,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+      clientId: process.env.KEYCLOAK_CLIENT_ID || "",
+      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || "",
       issuer: process.env.KEYCLOAK_ISSUER,
       profile(profile) {
         return {

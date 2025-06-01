@@ -34,4 +34,4 @@ spec:
               memory: "2Gi"
               cpu: "700m"
       imagePullSecrets:
-        - name: vms-cred
+        - name: bot-harbor-cred

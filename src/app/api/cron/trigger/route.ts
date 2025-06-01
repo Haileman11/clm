@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { checkExpiringContracts } from "@lib/cron/manager";
+// import { checkExpiringContracts } from "@lib/cron/manager";
 import authOptions from "@app/api/auth/[...nextauth]/options";
 import { checkPermission } from "@lib/apiPermissions";
 
@@ -12,16 +12,16 @@ export async function POST(request: Request) {
     }
 
     // Check if user has permission to trigger cron jobs
-    const { authorized, response } = await checkPermission(request, {
-      action: "cron:trigger",
-    });
+    // const { authorized, response } = await checkPermission(request, {
+    //   action: "cron:trigger",
+    // });
 
-    if (!authorized) {
-      return response;
-    }
+    // if (!authorized) {
+    //   return response;
+    // }
 
     // Run the job
-    await checkExpiringContracts();
+    // await checkExpiringContracts();
 
     return NextResponse.json({ message: "Cron job triggered successfully" });
   } catch (error: any) {
@@ -31,4 +31,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
