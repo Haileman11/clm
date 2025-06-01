@@ -1,14 +1,7 @@
 import authOptions from "@app/api/auth/[...nextauth]/options";
+import { getNodemailerTransport } from "@lib/nodemailer";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import * as nodemailer from "nodemailer";
-// Configure email transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || "25"),
-  secure: process.env.SMTP_SECURE === "true",
-  // auth: false,
-});
 
 // Helper function to send email
 async function sendExpirationNotification(
@@ -18,6 +11,8 @@ async function sendExpirationNotification(
   daysUntilExpiration: number
 ) {
   try {
+    console.log("transporting");
+    const transporter = await getNodemailerTransport();
     await transporter.sendMail({
       from:
         process.env.SMTP_FROM ||
@@ -44,8 +39,10 @@ async function sendExpirationNotification(
 // POST /api/email/expiry - Send expiry email
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.split(" ")[1];
+
+    if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

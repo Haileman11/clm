@@ -21,8 +21,8 @@ data:
   DB_HOST: "10.109.0.20"
 
   # Email Configuration
-  SMTP_HOST: "10.3.124.25"
-  SMTP_PORT: "587"
+  SMTP_HOST: "smtp.safaricomet.net"
+  SMTP_PORT: "25"
   SMTP_SECURE: "true"
 
   # SMTP_USER=your_smtp_username

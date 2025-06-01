@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: clm-service
-          image: mdc1-sfcr.safaricomet.net/miniapp/clm
+          image: mdc1-sfcr.safaricomet.net/miniapp/clm:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
