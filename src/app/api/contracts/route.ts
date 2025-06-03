@@ -99,10 +99,16 @@ export async function POST(req: Request) {
     const contractStakeholders = await prisma.contractStakeholder.createMany({
       data: connectStakeholders as [],
     });
+    const stakeholders = await prisma.contractStakeholder.findMany({
+      where: {
+        contractId: contract.id,
+      },
+      include: {
+        user: true,
+      },
+    });
     sendContractNotificationEmail({
-      emails: contract.stakeholders.map(
-        (stakeholder) => stakeholder.user.email
-      ),
+      emails: stakeholders.map((stakeholder) => stakeholder.user.email),
       type: "new",
       contractName: contract.name,
       contractId: contract.id,
