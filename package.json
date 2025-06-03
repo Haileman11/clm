@@ -29,6 +29,7 @@
     "@refinedev/simple-rest": "^5.0.1",
     "@types/node-cron": "^3.0.11",
     "antd": "^5.17.0",
+    "date-fns": "^4.1.0",
     "js-cookie": "^3.0.5",
     "keycloak-connect": "^26.1.1",
     "next": "^14.1.0",
@@ -38,6 +39,7 @@
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
+    "@types/date-fns": "^2.6.3",
     "@types/js-cookie": "^3.0.6",
     "@types/lodash": "^4.17.16",
     "@types/node": "^18.16.2",

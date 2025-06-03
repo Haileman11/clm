@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@lib/prisma";
 import authOptions from "@app/api/auth/[...nextauth]/options";
 import { checkPermission } from "@lib/apiPermissions";
+import { sendContractNotificationEmail } from "@lib/templates";
 
 // POST /api/contracts/[id]/renew - Renew a contract
 export async function POST(
@@ -27,6 +28,13 @@ export async function POST(
     // Get the contract
     const contract = await prisma.contract.findUnique({
       where: { id: params.id },
+      include: {
+        stakeholders: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     if (!contract) {
@@ -67,10 +75,7 @@ export async function POST(
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Update contract with new expiration date and renewal info
@@ -81,11 +86,22 @@ export async function POST(
         status: "RENEWED",
         renewedDate: new Date(),
         renewedBy: {
-          connect: { id: user.id }
-        }
+          connect: { id: user.id },
+        },
       },
     });
 
+    await sendContractNotificationEmail({
+      emails: contract.stakeholders.map(
+        (stakeholder) => stakeholder.user.email
+      ),
+      type: "renewal",
+      contractName: contract.name,
+      contractId: contract.id,
+      renewedDate: contract.renewedDate!,
+      expirationDate: contract.expirationDate,
+      description: `The contract has been renewed for an additional ${12} months.`,
+    });
     return NextResponse.json(updatedContract);
   } catch (error) {
     console.error("Error renewing contract:", error);
@@ -94,4 +110,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

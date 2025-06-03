@@ -4,39 +4,50 @@ import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   try {
+    const url = new URL(req.url);
+    const daysParam = url.searchParams.get("days");
+
+    const days = parseInt(daysParam ?? "", 10);
+    if (isNaN(days) || days <= 0) {
+      return NextResponse.json("Invalid or missing 'days' query parameter", {
+        status: 400,
+      });
+    }
     // Get current date
     const now = new Date();
 
     // Calculate dates for different notification periods
-    const thirtyDaysFromNow = new Date(now);
-    thirtyDaysFromNow.setDate(now.getDate() + 30);
-
-    const sevenDaysFromNow = new Date(now);
-    sevenDaysFromNow.setDate(now.getDate() + 7);
-
-    const oneDayFromNow = new Date(now);
-    oneDayFromNow.setDate(now.getDate() + 1);
+    const daysFromNow = new Date(now);
+    daysFromNow.setDate(now.getDate() + days);
 
     // Find contracts that are expiring soon
     const expiringContracts = await prisma.contract.findMany({
       where: {
         status: ContractStatus.ACTIVE,
         expirationDate: {
-          lte: thirtyDaysFromNow,
+          lte: daysFromNow,
           gt: now,
+        },
+        stakeholders: {
+          some: {
+            user: {
+              role: {
+                in: ["CONTRACT_MANAGER", "CONTRACT_OWNER"],
+              },
+            },
+          },
         },
       },
       include: {
         stakeholders: {
-          where: {
-            role: {
-              in: ["CONTRACT_MANAGER", "CONTRACT_OWNER"],
+          include: {
+            user: {
+              select: {
+                email: true,
+                firstName: true,
+                lastName: true,
+              },
             },
-          },
-          select: {
-            email: true,
-            firstName: true,
-            lastName: true,
           },
         },
       },

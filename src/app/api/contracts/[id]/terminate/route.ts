@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@lib/prisma";
 import authOptions from "@app/api/auth/[...nextauth]/options";
+import { sendContractNotificationEmail } from "@lib/templates";
 
 // POST /api/contracts/[id]/terminate - Terminate a contract
 export async function POST(
@@ -17,6 +18,13 @@ export async function POST(
     // Get the contract
     const contract = await prisma.contract.findUnique({
       where: { id: params.id },
+      include: {
+        stakeholders: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     if (!contract) {
@@ -41,7 +49,15 @@ export async function POST(
         status: "TERMINATED",
       },
     });
-
+    sendContractNotificationEmail({
+      emails: contract.stakeholders.map(
+        (stakeholder) => stakeholder.user.email
+      ),
+      type: "termination",
+      contractName: contract.name,
+      contractId: contract.id,
+      description: `This ${contract.contractType} was effective on ${contract.effectiveDate} and was due until ${contract.expirationDate}.`,
+    });
     return NextResponse.json(updatedContract);
   } catch (error) {
     console.error("Error terminating contract:", error);
@@ -50,4 +66,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

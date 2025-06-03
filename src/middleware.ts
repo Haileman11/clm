@@ -26,7 +26,7 @@ export default withAuth(
     // Check role-based access for API routes
     if (isApiRoute) {
       const path = req.nextUrl.pathname;
-      
+
       // Only CONTRACT_MANAGER can access these routes
       if (
         (path.startsWith("/api/users") || path.startsWith("/api/vendors")) &&
@@ -50,9 +50,9 @@ export const config = {
     "/contracts/:path*",
     "/vendors/:path*",
     "/users/:path*",
-    "/api/contracts/:path*",
+    // "/api/contracts/:path*",
     "/api/vendors/:path*",
     "/api/users/:path*",
     "/unauthorized",
   ],
-}; 
+};

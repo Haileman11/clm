@@ -1,3 +1,5 @@
+import { User } from "@prisma/client";
+
 export const CONTRACT_STATUS = [
   "NEW",
   "REVIEWED",
@@ -1151,4 +1153,16 @@ function getCountryDescription(country: COUNTRY): string {
     [COUNTRY.ZIMBABWE]: "Republic of Zimbabwe",
   };
   return descriptions[country];
+}
+export function formatContractWithStakeholders(contract: any) {
+  return {
+    ...contract,
+    stakeholders: contract.stakeholders.map((s: { user: User }) => ({
+      id: s.user.id,
+      email: s.user.email,
+      firstName: `${s.user.firstName}`,
+      lastName: `${s.user.lastName}`,
+      role: s.user.role,
+    })),
+  };
 }

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@lib/prisma";
 import authOptions from "@app/api/auth/[...nextauth]/options";
 import { checkPermission } from "@lib/apiPermissions";
+import { sendContractNotificationEmail } from "@lib/templates";
 
 // POST /api/contracts/[id]/activate - Activate a contract
 export async function POST(
@@ -28,6 +29,9 @@ export async function POST(
       where: { id: params.id },
       include: {
         reviews: true,
+        stakeholders: {
+          include: { user: true },
+        },
       },
     });
 
@@ -47,7 +51,9 @@ export async function POST(
     }
 
     // Check if all reviews are approved
-    const allApproved = contract.reviews.every((review:any) => review.status === "APPROVED");
+    const allApproved = contract.reviews.every(
+      (review: any) => review.status === "APPROVED"
+    );
     if (!allApproved) {
       return NextResponse.json(
         { error: "All reviews must be approved to activate contract" },
@@ -63,6 +69,16 @@ export async function POST(
       },
     });
 
+    await sendContractNotificationEmail({
+      emails: contract.stakeholders.map(
+        (stakeholder) => stakeholder.user.email
+      ),
+      type: "activation",
+      contractName: contract.name,
+      contractId: contract.id,
+      description: `This ${contract.contractType} becomes effective on ${contract.effectiveDate} and runs until ${contract.expirationDate}.`,
+    });
+
     return NextResponse.json(updatedContract);
   } catch (error) {
     console.error("Error activating contract:", error);
@@ -71,4 +87,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

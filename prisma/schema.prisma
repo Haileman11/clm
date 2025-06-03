@@ -14,19 +14,28 @@ datasource db {
 }
 
 model User {
-  id         String    @id @default(cuid())
-  keycloakId String    @unique
-  email      String    @unique
-  firstName  String
-  lastName   String
-  department String
-  role       UserRole
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  Contract   Contract? @relation(fields: [contractId], references: [id])
-  contractId String?
-  Review     Review[]
-  renewedContracts Contract[] @relation("ContractRenewal")
+  id               String                @id @default(cuid())
+  keycloakId       String                @unique
+  email            String                @unique
+  firstName        String
+  lastName         String
+  department       String
+  role             UserRole
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  contractId       String?
+  Review           Review[]
+  renewedContracts Contract[]            @relation("ContractRenewal")
+  stakeholderIn    ContractStakeholder[]
+}
+
+model ContractStakeholder {
+  userId     String
+  contractId String
+  user       User     @relation(fields: [userId], references: [id])
+  contract   Contract @relation(fields: [contractId], references: [id])
+
+  @@id([userId, contractId])
 }
 
 enum UserRole {
@@ -60,9 +69,9 @@ model Vendor {
 }
 
 model Contract {
-  id                String         @id @default(cuid())
-  contractNumber    String         @unique
-  name              String
+  id                String                @id @default(cuid())
+  contractNumber    String                @unique
+  name              String                @unique
   effectiveDate     DateTime
   expirationDate    DateTime
   clientLegalEntity String
@@ -72,17 +81,17 @@ model Contract {
   country           String
   currency          String
   totalValue        Float
-  status            ContractStatus @default(NEW)
-  vendor            Vendor         @relation(fields: [vendorId], references: [id])
+  status            ContractStatus        @default(NEW)
+  vendor            Vendor                @relation(fields: [vendorId], references: [id])
   vendorId          String
-  stakeholders      User[]
+  stakeholders      ContractStakeholder[]
   attachments       Attachment[]
   reviews           Review[]
   renewedDate       DateTime?
-  renewedBy         User?         @relation("ContractRenewal", fields: [renewedById], references: [id])
+  renewedBy         User?                 @relation("ContractRenewal", fields: [renewedById], references: [id])
   renewedById       String?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
 }
 
 model Attachment {
@@ -135,12 +144,12 @@ model Review {
 }
 
 model CronJobLog {
-  id          String   @id @default(cuid())
-  jobName     String
-  status      String   // "SUCCESS" or "ERROR"
-  message     String
-  details     Json?
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  jobName   String
+  status    String // "SUCCESS" or "ERROR"
+  message   String
+  details   Json?
+  createdAt DateTime @default(now())
 
   @@index([jobName])
   @@index([createdAt])

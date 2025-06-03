@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@lib/prisma";
 import authOptions from "@app/api/auth/[...nextauth]/options";
+import { formatContractWithStakeholders } from "@lib/types";
 
 // GET /api/contracts/[id] - Get a single contract
 export async function GET(
@@ -18,7 +19,11 @@ export async function GET(
       where: { id: params.id },
       include: {
         vendor: true,
-        stakeholders: true,
+        stakeholders: {
+          include: {
+            user: true,
+          },
+        },
         attachments: true,
         reviews: {
           include: {
@@ -35,7 +40,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(contract);
+    return NextResponse.json(formatContractWithStakeholders(contract));
   } catch (error) {
     console.error("Error fetching contract:", error);
     return NextResponse.json(
@@ -96,7 +101,20 @@ export async function PATCH(
 
     const connectStakeholders = Object.values(stakeholders)
       .flat()
-      .map((id) => ({ id: id }));
+      .map((userId) => ({ userId: userId, contractId: params.id }));
+
+    // 1. Delete existing stakeholders for the contract
+
+    await prisma.contractStakeholder.deleteMany({
+      where: {
+        contractId: params.id,
+      },
+    });
+
+    // 2. Add new stakeholders
+    await prisma.contractStakeholder.createMany({
+      data: connectStakeholders as [],
+    });
 
     const connectAttachments = attachments?.map((attachment: any) => ({
       id: attachment.id,
@@ -116,9 +134,6 @@ export async function PATCH(
         currency,
         totalValue,
         vendorId,
-        stakeholders: {
-          set: connectStakeholders as { id: string }[],
-        },
         attachments: {
           set: connectAttachments as { id: string }[],
         },
