@@ -27,6 +27,7 @@ model User {
   Review           Review[]
   renewedContracts Contract[]            @relation("ContractRenewal")
   stakeholderIn    ContractStakeholder[]
+  Notification     Notification[]
 }
 
 model ContractStakeholder {
@@ -153,4 +154,27 @@ model CronJobLog {
 
   @@index([jobName])
   @@index([createdAt])
+}
+
+model Notification {
+  id        String            @id @default(uuid())
+  type      NotificationTypes
+  title     String
+  body      String
+  userEmail String
+  read      Boolean           @default(false)
+  createdAt DateTime          @default(now())
+
+  // optional relation to User
+  user User? @relation(fields: [userEmail], references: [email])
+}
+
+enum NotificationTypes {
+  new
+  activation
+  expiration
+  termination
+  expired
+  inactive
+  renewal
 }

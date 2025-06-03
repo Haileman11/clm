@@ -1,4 +1,5 @@
 import { getNodemailerTransport } from "./nodemailer";
+import { prisma } from "./prisma";
 
 export function generateContractNotificationHTML({
   type,
@@ -158,6 +159,19 @@ export async function sendContractNotificationEmail({
       daysUntilExpiration,
       description,
     });
+
+    await Promise.all(
+      emails.map((email) =>
+        prisma.notification.create({
+          data: {
+            type,
+            title: subject,
+            body: description ?? "", // optional preview
+            userEmail: email,
+          },
+        })
+      )
+    );
 
     await transporter.sendMail({
       from:

@@ -12,8 +12,20 @@ export async function GET() {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
+    const user = await prisma.user.findUnique({
+      where: { keycloakId: session.user.id },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 401 });
+    }
     const contracts = await prisma.contract.findMany({
+      where: {
+        stakeholders: {
+          some: {
+            userId: user?.id, // Replace with actual userId
+          },
+        },
+      },
       include: {
         vendor: true,
         stakeholders: {
@@ -96,7 +108,7 @@ export async function POST(req: Request) {
       .map((userId) => ({ userId: userId, contractId: contract.id }));
 
     // Add contract stakeholders
-    const contractStakeholders = await prisma.contractStakeholder.createMany({
+    await prisma.contractStakeholder.createMany({
       data: connectStakeholders as [],
     });
     const stakeholders = await prisma.contractStakeholder.findMany({
@@ -107,7 +119,7 @@ export async function POST(req: Request) {
         user: true,
       },
     });
-    sendContractNotificationEmail({
+    await sendContractNotificationEmail({
       emails: stakeholders.map((stakeholder) => stakeholder.user.email),
       type: "new",
       contractName: contract.name,
@@ -116,7 +128,7 @@ export async function POST(req: Request) {
         <p>This <strong>${
           contract.contractType
         }</strong> becomes effective on <strong>${contract.effectiveDate.toLocaleDateString()}</strong> and runs until <strong>${contract.expirationDate.toLocaleDateString()}</strong>.</p>
-        <p><strong>Stakeholders:</strong> ${contract.stakeholders
+        <p><strong>Stakeholders:</strong> ${stakeholders
           .map((s) => `${s.user.firstName} ${s.user.lastName}`)
           .join(", ")}</p>
       `,

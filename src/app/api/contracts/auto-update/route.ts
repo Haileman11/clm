@@ -9,11 +9,19 @@ import { addDays } from "date-fns";
 // POST /api/contracts/auto-update - Activate expire and deactivate contracts
 export async function GET(request: Request) {
   try {
-    const today = new Date();
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
     const contractsToActivate = await prisma.contract.findMany({
       where: {
         status: "NEW",
-        effectiveDate: today,
+        effectiveDate: {
+          gte: startOfToday,
+          lte: endOfToday,
+        },
       },
       include: {
         vendor: true,
@@ -24,7 +32,7 @@ export async function GET(request: Request) {
         },
       },
     });
-
+    console.log(contractsToActivate);
     for (const contract of contractsToActivate) {
       await prisma.contract.update({
         where: { id: contract.id },
@@ -45,7 +53,10 @@ export async function GET(request: Request) {
     const contractsToExpire = await prisma.contract.findMany({
       where: {
         status: "ACTIVE",
-        expirationDate: today,
+        expirationDate: {
+          gte: startOfToday,
+          lte: endOfToday,
+        },
       },
       include: {
         vendor: true,
@@ -56,7 +67,7 @@ export async function GET(request: Request) {
         },
       },
     });
-
+    console.log(contractsToExpire);
     for (const contract of contractsToExpire) {
       await prisma.contract.update({
         where: { id: contract.id },
@@ -77,7 +88,7 @@ export async function GET(request: Request) {
     const contractsToDeactivate = await prisma.contract.findMany({
       where: {
         status: "EXPIRED",
-        expirationDate: addDays(today, 30),
+        expirationDate: addDays(startOfToday, 30),
       },
       include: {
         vendor: true,
@@ -88,7 +99,8 @@ export async function GET(request: Request) {
         },
       },
     });
-
+    console.log(contractsToDeactivate);
+    // Deactivate contracts which have expired for thirty days
     for (const contract of contractsToDeactivate) {
       await prisma.contract.update({
         where: { id: contract.id },

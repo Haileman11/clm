@@ -82,7 +82,7 @@ export function ContractActions({
 
       <WithPermission action="contract:renew">
         {status === "ACTIVE" && (
-          <Button type="primary" onClick={handleRenew}>
+          <Button type="primary" onClick={() => setRenewModalOpen(true)}>
             Renew
           </Button>
         )}

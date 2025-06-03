@@ -95,7 +95,7 @@ export const ImportExportButtons = () => {
       <Button type="primary" onClick={() => router.push("/contracts/create")}>
         Create Contract
       </Button>
-      ,
+
       <Upload
         accept=".csv"
         showUploadList={false}

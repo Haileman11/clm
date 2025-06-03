@@ -6,7 +6,11 @@ import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import React from "react";
-import { FileTextOutlined, TeamOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  FileTextOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 
 import routerProvider from "@refinedev/nextjs-router";
 
@@ -94,6 +98,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
       if (data?.user) {
         const { user } = data;
         return {
+          id: user.id,
           name: user.name,
           avatar: user.image,
         };
@@ -147,7 +152,7 @@ const App = (props: React.PropsWithChildren<AppProps>) => {
   ];
 
   return (
-    <>      
+    <>
       <RefineKbarProvider>
         <AntdRegistry>
           <ColorModeContextProvider defaultMode={defaultMode}>

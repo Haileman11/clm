@@ -1,5 +1,7 @@
 "use client";
 
+import { UserOutlined } from "@ant-design/icons";
+import { NotificationDropdown } from "@components/notifications/Notifications";
 import { ColorModeContext } from "@contexts/color-mode";
 import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
 import { useGetIdentity } from "@refinedev/core";
@@ -56,9 +58,12 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
         {(user?.name || user?.avatar) && (
           <Space style={{ marginLeft: "8px" }} size="middle">
             {user?.name && <Text strong>{user.name}</Text>}
-            {user?.avatar && <Avatar src={user?.avatar} alt={user?.name} />}
+            {user?.avatar && (
+              <Avatar icon={<UserOutlined />} alt={user?.name} />
+            )}
           </Space>
         )}
+        <NotificationDropdown />
       </Space>
     </AntdLayout.Header>
   );
